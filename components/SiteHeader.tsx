@@ -15,7 +15,7 @@ export async function SiteHeader() {
     const ativo = torneios.find((t) => t.status === 'em_andamento');
     const inscricoes = torneios.find((t) => t.status === 'inscricoes_abertas');
     if (ativo) {
-      ticker = { texto: `AO VIVO — ${ativo.nome} em andamento`, href: `/torneios/${ativo.slug}` };
+      ticker = { texto: `EM ANDAMENTO — ${ativo.nome}`, href: `/torneios/${ativo.slug}` };
     } else if (inscricoes) {
       ticker = { texto: `INSCRIÇÕES ABERTAS — ${inscricoes.nome}`, href: `/torneios/${inscricoes.slug}` };
     }

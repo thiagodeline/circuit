@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth-context';
 const itens = [
   { href: '/admin/dashboard', label: 'Visão geral' },
   { href: '/admin/torneios', label: 'Torneios' },
+  { href: '/admin/inscricoes', label: 'Inscrições' },
   { href: '/admin/times', label: 'Times' },
   { href: '/admin/resultados', label: 'Resultados' },
   { href: '/admin/noticias', label: 'Notícias' },
