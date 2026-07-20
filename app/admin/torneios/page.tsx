@@ -5,13 +5,14 @@ import { RequireAuth } from '@/components/RequireAuth';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { StatusBadge } from '@/components/StatusBadge';
 import { listarTorneios, criarTorneio, atualizarTorneio, excluirTorneio } from '@/lib/data';
-import { Torneio, StatusTorneio } from '@/types';
+import { Torneio, StatusTorneio, FormatoTorneio } from '@/types';
 
 const vazio = {
   slug: '',
   nome: '',
   descricao: '',
   status: 'em_breve' as StatusTorneio,
+  formatoTipo: 'grupos_playoffs' as FormatoTorneio,
   formato: '',
   dataInicio: '',
   dataFim: '',
@@ -43,6 +44,7 @@ export default function AdminTorneiosPage() {
       nome: t.nome,
       descricao: t.descricao,
       status: t.status,
+      formatoTipo: t.formatoTipo || 'grupos_playoffs',
       formato: t.formato,
       dataInicio: t.dataInicio,
       dataFim: t.dataFim || '',
@@ -151,7 +153,23 @@ export default function AdminTorneiosPage() {
                 />
               </div>
               <div>
-                <label className="label">Formato</label>
+                <label className="label">Tipo de formato</label>
+                <select
+                  className="input"
+                  value={form.formatoTipo}
+                  onChange={(e) => setForm({ ...form, formatoTipo: e.target.value as FormatoTorneio })}
+                >
+                  <option value="grupos_playoffs">Fase de grupos + playoffs</option>
+                  <option value="mata_mata">Mata-mata (eliminação direta)</option>
+                  <option value="todos_contra_todos">Todos contra todos (liga)</option>
+                  <option value="outro">Outro / personalizado</option>
+                </select>
+                <p className="mt-1 text-xs text-muted">
+                  Define se o site mostra tabela de classificação (grupos/liga) ou só as chaves (mata-mata).
+                </p>
+              </div>
+              <div>
+                <label className="label">Formato (descrição)</label>
                 <input
                   className="input"
                   value={form.formato}

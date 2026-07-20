@@ -1,12 +1,15 @@
 export type StatusTorneio = 'em_breve' | 'inscricoes_abertas' | 'em_andamento' | 'finalizado';
 
+export type FormatoTorneio = 'grupos_playoffs' | 'mata_mata' | 'todos_contra_todos' | 'outro';
+
 export interface Torneio {
   id: string;
   slug: string;
   nome: string;
   descricao: string;
   status: StatusTorneio;
-  formato: string; // ex: "8 times · 2 grupos · playoffs"
+  formatoTipo: FormatoTorneio; // define como o site organiza a exibição (classificação vs. só chaves)
+  formato: string; // descrição livre, ex: "8 times · 2 grupos · playoffs"
   dataInicio: string; // ISO date
   dataFim?: string;
   local?: string; // ex: "Online" ou "São Paulo, SP"
