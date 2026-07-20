@@ -22,14 +22,14 @@ export default async function HomePage() {
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden border-b border-line bg-circuit-trace bg-[length:120px_120px]">
-          <div className="mx-auto max-w-6xl px-6 pb-14 pt-28">
-            <p className="eyebrow mb-4">Organização de torneios de Valorant</p>
-            <h1 className="max-w-3xl font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
-              Cada campeonato é um circuito.
+          <div className="mx-auto max-w-6xl px-6 pb-12 pt-20">
+            <p className="eyebrow mb-5">Organização de torneios de Valorant</p>
+            <h1 className="max-w-4xl font-display text-6xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
+              Cada campeonato
               <br />
-              <span className="text-signal">Nós conectamos os pontos.</span>
+              é um <span className="text-signal">circuito.</span>
             </h1>
-            <p className="mt-6 max-w-xl text-lg text-muted">
+            <p className="mt-6 max-w-lg text-base text-muted">
               A Circuit organiza campeonatos competitivos de Valorant — do Circuit Zen às próximas
               temporadas — com chaves, resultados e times em um só lugar.
             </p>
@@ -64,12 +64,15 @@ export default async function HomePage() {
 
         {/* TORNEIOS EM DESTAQUE */}
         <section className="mx-auto max-w-6xl px-6 py-20">
-          <div className="mb-10 flex items-end justify-between">
-            <div>
-              <p className="eyebrow mb-2">Temporada atual</p>
-              <h2 className="font-display text-3xl font-semibold">Torneios</h2>
+          <div className="mb-10 flex items-end justify-between border-b border-line pb-6">
+            <div className="flex items-baseline gap-4">
+              <span className="font-mono text-sm text-muted">01</span>
+              <div>
+                <p className="eyebrow mb-2">Temporada atual</p>
+                <h2 className="font-display text-3xl font-semibold uppercase">Torneios</h2>
+              </div>
             </div>
-            <Link href="/torneios" className="text-sm text-signal hover:underline">
+            <Link href="/torneios" className="font-mono text-xs uppercase tracking-wider text-signal hover:underline">
               Ver todos →
             </Link>
           </div>
