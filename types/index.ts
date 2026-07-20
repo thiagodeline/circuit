@@ -56,3 +56,17 @@ export interface Noticia {
   publicadoEm: number;
   autor: string;
 }
+
+export type StatusInscricao = 'pendente' | 'aprovada' | 'rejeitada';
+
+export interface Inscricao {
+  id: string;
+  torneioId: string;
+  nomeTime: string;
+  tag: string;
+  capitao: string;
+  contato: string;
+  jogadores: string[];
+  status: StatusInscricao;
+  criadoEm: number;
+}

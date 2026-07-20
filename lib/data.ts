@@ -11,7 +11,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Torneio, Time, Partida, Noticia } from '@/types';
+import { Torneio, Time, Partida, Noticia, Inscricao } from '@/types';
 
 // --- Torneios ---
 
@@ -107,4 +107,23 @@ export async function atualizarNoticia(id: string, dados: Partial<Noticia>) {
 
 export async function excluirNoticia(id: string) {
   return deleteDoc(doc(db, 'noticias', id));
+}
+
+// --- Inscrições (envio público, gestão só pelo admin) ---
+
+export async function criarInscricao(dados: Omit<Inscricao, 'id' | 'criadoEm' | 'status'>) {
+  return addDoc(collection(db, 'inscricoes'), { ...dados, status: 'pendente', criadoEm: Date.now() });
+}
+
+export async function listarInscricoesPorTorneio(torneioId: string): Promise<Inscricao[]> {
+  const snap = await getDocs(query(collection(db, 'inscricoes'), where('torneioId', '==', torneioId)));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Inscricao);
+}
+
+export async function atualizarInscricao(id: string, dados: Partial<Inscricao>) {
+  return updateDoc(doc(db, 'inscricoes', id), dados);
+}
+
+export async function excluirInscricao(id: string) {
+  return deleteDoc(doc(db, 'inscricoes', id));
 }
