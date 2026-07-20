@@ -6,7 +6,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 import { listarTorneios, listarTimesPorTorneio, criarTime, atualizarTime, excluirTime } from '@/lib/data';
 import { Torneio, Time } from '@/types';
 
-const vazio = { nome: '', tag: '', logo: '', capitao: '', contato: '', grupo: '', jogadores: '' };
+const vazio = { nome: '', tag: '', logo: '', bio: '', capitao: '', contato: '', grupo: '', jogadores: '' };
 
 export default function AdminTimesPage() {
   const [torneios, setTorneios] = useState<Torneio[]>([]);
@@ -41,6 +41,7 @@ export default function AdminTimesPage() {
       nome: t.nome,
       tag: t.tag,
       logo: t.logo || '',
+      bio: t.bio || '',
       capitao: t.capitao,
       contato: t.contato,
       grupo: t.grupo || '',
@@ -62,6 +63,7 @@ export default function AdminTimesPage() {
       nome: form.nome,
       tag: form.tag,
       logo: form.logo,
+      bio: form.bio,
       capitao: form.capitao,
       contato: form.contato,
       grupo: form.grupo,
@@ -150,6 +152,10 @@ export default function AdminTimesPage() {
               <div>
                 <label className="label">Contato (Discord/email)</label>
                 <input className="input" value={form.contato} onChange={(e) => setForm({ ...form, contato: e.target.value })} />
+              </div>
+              <div>
+                <label className="label">Bio / história do time</label>
+                <textarea className="input min-h-20" value={form.bio} onChange={(e) => setForm({ ...form, bio: e.target.value })} placeholder="Curta descrição sobre o time, trajetória, etc." />
               </div>
               <div>
                 <label className="label">Grupo</label>

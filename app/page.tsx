@@ -14,13 +14,15 @@ export default async function HomePage() {
     // Firebase ainda não configurado — a home segue funcionando sem dados
   }
 
+  const torneiosAtivos = torneios.filter((t) => t.status === 'em_andamento').length;
+
   return (
     <>
       <SiteHeader />
       <main>
         {/* HERO */}
         <section className="relative overflow-hidden border-b border-line bg-circuit-trace bg-[length:120px_120px]">
-          <div className="mx-auto max-w-6xl px-6 py-28">
+          <div className="mx-auto max-w-6xl px-6 pb-14 pt-28">
             <p className="eyebrow mb-4">Organização de torneios de Valorant</p>
             <h1 className="max-w-3xl font-display text-5xl font-semibold leading-[1.05] tracking-tight md:text-6xl">
               Cada campeonato é um circuito.
@@ -38,6 +40,24 @@ export default async function HomePage() {
               <Link href="/noticias" className="btn-secondary">
                 Últimas notícias
               </Link>
+            </div>
+          </div>
+
+          {/* FAIXA DE ESTATÍSTICAS */}
+          <div className="border-t border-line bg-surface/60">
+            <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-line px-6">
+              <div className="px-6 py-6">
+                <p className="font-display text-3xl font-semibold">{torneios.length}</p>
+                <p className="font-mono text-xs uppercase tracking-wider text-muted">Torneios cadastrados</p>
+              </div>
+              <div className="px-6 py-6">
+                <p className="font-display text-3xl font-semibold text-live">{torneiosAtivos}</p>
+                <p className="font-mono text-xs uppercase tracking-wider text-muted">Em andamento agora</p>
+              </div>
+              <div className="px-6 py-6">
+                <p className="font-display text-3xl font-semibold text-signal">Circuit Zen</p>
+                <p className="font-mono text-xs uppercase tracking-wider text-muted">Temporada de estreia</p>
+              </div>
             </div>
           </div>
         </section>

@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { listarTorneios, listarTimesPorTorneio } from '@/lib/data';
@@ -25,7 +26,7 @@ export default async function TimesPage() {
                 <h2 className="mb-5 font-display text-xl font-semibold text-signal">{torneio.nome}</h2>
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {times.map((t) => (
-                    <div key={t.id} className="card flex items-center gap-3 p-4">
+                    <Link key={t.id} href={`/times/${t.id}`} className="card group flex items-center gap-3 p-4 transition hover:border-signal/50">
                       {t.logo ? (
                         <img src={t.logo} alt={t.nome} className="h-10 w-10 flex-shrink-0 rounded-md object-cover" />
                       ) : (
@@ -34,10 +35,10 @@ export default async function TimesPage() {
                         </div>
                       )}
                       <div className="min-w-0">
-                        <p className="truncate font-display font-semibold">{t.nome}</p>
+                        <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
                         <p className="font-mono text-xs text-muted">{t.tag}</p>
                       </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               </div>

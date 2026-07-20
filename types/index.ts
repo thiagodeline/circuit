@@ -22,6 +22,7 @@ export interface Time {
   nome: string;
   tag: string; // sigla curta, ex: "ZEN"
   logo?: string;
+  bio?: string; // curta descrição/história do time
   capitao: string;
   contato: string;
   jogadores: string[];

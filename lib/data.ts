@@ -46,6 +46,12 @@ export async function listarTimesPorTorneio(torneioId: string): Promise<Time[]> 
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Time);
 }
 
+export async function buscarTimePorId(id: string): Promise<Time | null> {
+  const snap = await getDoc(doc(db, 'times', id));
+  if (!snap.exists()) return null;
+  return { id: snap.id, ...snap.data() } as Time;
+}
+
 export async function criarTime(dados: Omit<Time, 'id' | 'criadoEm'>) {
   return addDoc(collection(db, 'times'), { ...dados, criadoEm: Date.now() });
 }
