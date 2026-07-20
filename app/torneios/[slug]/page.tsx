@@ -22,12 +22,53 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
     <>
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-6 py-16">
+        {torneio.capa && (
+          <div
+            className="mb-10 aspect-[3/1] w-full rounded-2xl bg-cover bg-center"
+            style={{ backgroundImage: `url(${torneio.capa})` }}
+          />
+        )}
         <div className="mb-3 flex items-center gap-3">
           <StatusBadge status={torneio.status} />
           <span className="font-mono text-xs text-muted">{torneio.formato}</span>
         </div>
         <h1 className="font-display text-4xl font-semibold">{torneio.nome}</h1>
         <p className="mt-3 max-w-2xl text-muted">{torneio.descricao}</p>
+
+        {/* INFORMAÇÕES GERAIS */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+          {torneio.dataInicio && (
+            <div className="card p-4">
+              <p className="eyebrow mb-1 text-xs">Início</p>
+              <p className="font-medium">{new Date(torneio.dataInicio).toLocaleDateString('pt-BR')}</p>
+            </div>
+          )}
+          {torneio.dataFim && (
+            <div className="card p-4">
+              <p className="eyebrow mb-1 text-xs">Término</p>
+              <p className="font-medium">{new Date(torneio.dataFim).toLocaleDateString('pt-BR')}</p>
+            </div>
+          )}
+          {torneio.local && (
+            <div className="card p-4">
+              <p className="eyebrow mb-1 text-xs">Local</p>
+              <p className="font-medium">{torneio.local}</p>
+            </div>
+          )}
+          {torneio.premiacao && (
+            <div className="card p-4">
+              <p className="eyebrow mb-1 text-xs">Premiação</p>
+              <p className="font-medium">{torneio.premiacao}</p>
+            </div>
+          )}
+        </div>
+
+        {torneio.regras && (
+          <section className="mt-10">
+            <h2 className="mb-3 font-display text-xl font-semibold">Regras e observações</h2>
+            <p className="whitespace-pre-line text-muted">{torneio.regras}</p>
+          </section>
+        )}
 
         {/* TIMES */}
         <section className="mt-14">
@@ -37,10 +78,19 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
           ) : (
             <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
               {times.map((t) => (
-                <div key={t.id} className="card p-4">
-                  <p className="font-display font-semibold">{t.nome}</p>
-                  <p className="font-mono text-xs text-signal">{t.tag}</p>
-                  {t.grupo && <p className="mt-1 text-xs text-muted">{t.grupo}</p>}
+                <div key={t.id} className="card flex items-center gap-3 p-4">
+                  {t.logo ? (
+                    <img src={t.logo} alt={t.nome} className="h-10 w-10 flex-shrink-0 rounded-md object-cover" />
+                  ) : (
+                    <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-surface2 font-mono text-xs text-muted">
+                      {t.tag.slice(0, 3)}
+                    </div>
+                  )}
+                  <div className="min-w-0">
+                    <p className="truncate font-display font-semibold">{t.nome}</p>
+                    <p className="font-mono text-xs text-signal">{t.tag}</p>
+                    {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
+                  </div>
                 </div>
               ))}
             </div>

@@ -7,7 +7,7 @@ import { listarNoticias, criarNoticia, atualizarNoticia, excluirNoticia } from '
 import { Noticia } from '@/types';
 import { useAuth } from '@/lib/auth-context';
 
-const vazio = { slug: '', titulo: '', resumo: '', conteudo: '' };
+const vazio = { slug: '', titulo: '', resumo: '', conteudo: '', capa: '' };
 
 export default function AdminNoticiasPage() {
   const { user } = useAuth();
@@ -26,7 +26,7 @@ export default function AdminNoticiasPage() {
 
   function iniciarEdicao(n: Noticia) {
     setEditando(n.id);
-    setForm({ slug: n.slug, titulo: n.titulo, resumo: n.resumo, conteudo: n.conteudo });
+    setForm({ slug: n.slug, titulo: n.titulo, resumo: n.resumo, conteudo: n.conteudo, capa: n.capa || '' });
   }
 
   function cancelar() {
@@ -69,9 +69,16 @@ export default function AdminNoticiasPage() {
               {noticias.length === 0 && <p className="text-muted">Nenhuma notícia publicada.</p>}
               {noticias.map((n) => (
                 <div key={n.id} className="card flex items-center justify-between p-4">
-                  <div>
-                    <p className="font-display font-semibold">{n.titulo}</p>
-                    <p className="font-mono text-xs text-muted">/{n.slug}</p>
+                  <div className="flex items-center gap-3">
+                    {n.capa ? (
+                      <img src={n.capa} alt={n.titulo} className="h-12 w-16 flex-shrink-0 rounded-md object-cover" />
+                    ) : (
+                      <div className="h-12 w-16 flex-shrink-0 rounded-md bg-surface2" />
+                    )}
+                    <div>
+                      <p className="font-display font-semibold">{n.titulo}</p>
+                      <p className="font-mono text-xs text-muted">/{n.slug}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => iniciarEdicao(n)} className="btn-secondary px-3 py-1.5 text-xs">Editar</button>
@@ -94,6 +101,10 @@ export default function AdminNoticiasPage() {
               <div>
                 <label className="label">Resumo</label>
                 <textarea required className="input min-h-16" value={form.resumo} onChange={(e) => setForm({ ...form, resumo: e.target.value })} />
+              </div>
+              <div>
+                <label className="label">URL da imagem de capa</label>
+                <input className="input" value={form.capa} onChange={(e) => setForm({ ...form, capa: e.target.value })} placeholder="https://..." />
               </div>
               <div>
                 <label className="label">Conteúdo</label>

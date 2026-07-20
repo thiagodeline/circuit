@@ -10,7 +10,7 @@ module.exports = {
         line: '#242938',      // bordas e divisores
         ink: '#E9EBF0',       // texto principal
         muted: '#8B93A7',     // texto secundário
-        signal: '#4F7CFF',    // azul elétrico — ação, links, marca
+        signal: '#FF6A1A',    // laranja — ação, links, marca
         live: '#1FE5C0',      // teal — "ao vivo", sucesso
         alert: '#FF5D6C',     // vermelho — erro, urgente
       },

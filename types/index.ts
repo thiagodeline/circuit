@@ -9,6 +9,9 @@ export interface Torneio {
   formato: string; // ex: "8 times · 2 grupos · playoffs"
   dataInicio: string; // ISO date
   dataFim?: string;
+  local?: string; // ex: "Online" ou "São Paulo, SP"
+  premiacao?: string; // ex: "R$ 2.000 para o campeão"
+  regras?: string; // texto livre com regras/observações
   capa?: string; // URL da imagem de capa
   criadoEm: number;
 }

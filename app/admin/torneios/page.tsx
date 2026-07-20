@@ -14,6 +14,11 @@ const vazio = {
   status: 'em_breve' as StatusTorneio,
   formato: '',
   dataInicio: '',
+  dataFim: '',
+  local: '',
+  premiacao: '',
+  regras: '',
+  capa: '',
 };
 
 export default function AdminTorneiosPage() {
@@ -40,6 +45,11 @@ export default function AdminTorneiosPage() {
       status: t.status,
       formato: t.formato,
       dataInicio: t.dataInicio,
+      dataFim: t.dataFim || '',
+      local: t.local || '',
+      premiacao: t.premiacao || '',
+      regras: t.regras || '',
+      capa: t.capa || '',
     });
   }
 
@@ -169,6 +179,51 @@ export default function AdminTorneiosPage() {
                   className="input"
                   value={form.dataInicio}
                   onChange={(e) => setForm({ ...form, dataInicio: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="label">Data de término</label>
+                <input
+                  type="date"
+                  className="input"
+                  value={form.dataFim}
+                  onChange={(e) => setForm({ ...form, dataFim: e.target.value })}
+                />
+              </div>
+              <div>
+                <label className="label">Local</label>
+                <input
+                  className="input"
+                  value={form.local}
+                  onChange={(e) => setForm({ ...form, local: e.target.value })}
+                  placeholder="Online / São Paulo, SP"
+                />
+              </div>
+              <div>
+                <label className="label">Premiação</label>
+                <input
+                  className="input"
+                  value={form.premiacao}
+                  onChange={(e) => setForm({ ...form, premiacao: e.target.value })}
+                  placeholder="R$ 2.000 para o campeão"
+                />
+              </div>
+              <div>
+                <label className="label">Regras / observações</label>
+                <textarea
+                  className="input min-h-24"
+                  value={form.regras}
+                  onChange={(e) => setForm({ ...form, regras: e.target.value })}
+                  placeholder="Regras de campeonato, formato de partida (MD1/MD3), horários, etc."
+                />
+              </div>
+              <div>
+                <label className="label">URL da imagem de capa</label>
+                <input
+                  className="input"
+                  value={form.capa}
+                  onChange={(e) => setForm({ ...form, capa: e.target.value })}
+                  placeholder="https://..."
                 />
               </div>
               <div className="flex gap-2 pt-2">

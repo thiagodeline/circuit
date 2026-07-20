@@ -6,7 +6,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 import { listarTorneios, listarTimesPorTorneio, criarTime, atualizarTime, excluirTime } from '@/lib/data';
 import { Torneio, Time } from '@/types';
 
-const vazio = { nome: '', tag: '', capitao: '', contato: '', grupo: '', jogadores: '' };
+const vazio = { nome: '', tag: '', logo: '', capitao: '', contato: '', grupo: '', jogadores: '' };
 
 export default function AdminTimesPage() {
   const [torneios, setTorneios] = useState<Torneio[]>([]);
@@ -40,6 +40,7 @@ export default function AdminTimesPage() {
     setForm({
       nome: t.nome,
       tag: t.tag,
+      logo: t.logo || '',
       capitao: t.capitao,
       contato: t.contato,
       grupo: t.grupo || '',
@@ -60,6 +61,7 @@ export default function AdminTimesPage() {
       torneioId,
       nome: form.nome,
       tag: form.tag,
+      logo: form.logo,
       capitao: form.capitao,
       contato: form.contato,
       grupo: form.grupo,
@@ -106,9 +108,18 @@ export default function AdminTimesPage() {
               {times.length === 0 && <p className="text-muted">Nenhum time inscrito neste torneio.</p>}
               {times.map((t) => (
                 <div key={t.id} className="card flex items-center justify-between p-4">
-                  <div>
-                    <p className="font-display font-semibold">{t.nome} <span className="font-mono text-xs text-muted">({t.tag})</span></p>
-                    <p className="text-xs text-muted">Capitão: {t.capitao} {t.grupo && `· ${t.grupo}`}</p>
+                  <div className="flex items-center gap-3">
+                    {t.logo ? (
+                      <img src={t.logo} alt={t.nome} className="h-9 w-9 rounded-md object-cover" />
+                    ) : (
+                      <div className="flex h-9 w-9 items-center justify-center rounded-md bg-surface2 font-mono text-xs text-muted">
+                        {t.tag.slice(0, 3)}
+                      </div>
+                    )}
+                    <div>
+                      <p className="font-display font-semibold">{t.nome} <span className="font-mono text-xs text-muted">({t.tag})</span></p>
+                      <p className="text-xs text-muted">Capitão: {t.capitao} {t.grupo && `· ${t.grupo}`}</p>
+                    </div>
                   </div>
                   <div className="flex gap-2">
                     <button onClick={() => iniciarEdicao(t)} className="btn-secondary px-3 py-1.5 text-xs">Editar</button>
@@ -127,6 +138,10 @@ export default function AdminTimesPage() {
               <div>
                 <label className="label">Tag</label>
                 <input required className="input" value={form.tag} onChange={(e) => setForm({ ...form, tag: e.target.value })} placeholder="ZEN" />
+              </div>
+              <div>
+                <label className="label">URL do logo</label>
+                <input className="input" value={form.logo} onChange={(e) => setForm({ ...form, logo: e.target.value })} placeholder="https://..." />
               </div>
               <div>
                 <label className="label">Capitão</label>

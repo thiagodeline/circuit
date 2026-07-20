@@ -13,6 +13,13 @@ export default async function NoticiaDetalhePage({ params }: { params: { slug: s
     <>
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-6 py-16">
+        {noticia.capa && (
+          <img
+            src={noticia.capa}
+            alt={noticia.titulo}
+            className="mb-8 aspect-[16/9] w-full rounded-2xl object-cover"
+          />
+        )}
         <p className="font-mono text-xs text-muted">
           {new Date(noticia.publicadoEm).toLocaleDateString('pt-BR')} · {noticia.autor}
         </p>

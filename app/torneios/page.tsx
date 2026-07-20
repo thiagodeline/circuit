@@ -27,13 +27,20 @@ export default async function TorneiosPage() {
             <div className="card col-span-2 p-10 text-center text-muted">Nenhum torneio publicado ainda.</div>
           )}
           {torneios.map((t) => (
-            <Link key={t.id} href={`/torneios/${t.slug}`} className="card group p-6 transition hover:border-signal/50">
-              <div className="mb-4 flex items-center justify-between">
-                <StatusBadge status={t.status} />
-                <span className="font-mono text-xs text-muted">{t.formato}</span>
+            <Link key={t.id} href={`/torneios/${t.slug}`} className="card group overflow-hidden transition hover:border-signal/50">
+              {t.capa && (
+                <div className="aspect-[21/9] w-full bg-surface2">
+                  <img src={t.capa} alt={t.nome} className="h-full w-full object-cover" />
+                </div>
+              )}
+              <div className="p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <StatusBadge status={t.status} />
+                  <span className="font-mono text-xs text-muted">{t.formato}</span>
+                </div>
+                <h3 className="font-display text-xl font-semibold group-hover:text-signal">{t.nome}</h3>
+                <p className="mt-2 line-clamp-2 text-sm text-muted">{t.descricao}</p>
               </div>
-              <h3 className="font-display text-xl font-semibold group-hover:text-signal">{t.nome}</h3>
-              <p className="mt-2 line-clamp-2 text-sm text-muted">{t.descricao}</p>
             </Link>
           ))}
         </div>
