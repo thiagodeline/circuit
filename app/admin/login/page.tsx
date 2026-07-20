@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
@@ -30,9 +31,7 @@ export default function AdminLoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-base px-6">
       <div className="w-full max-w-sm">
         <div className="mb-8 flex items-center gap-2 font-display text-lg font-semibold">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-signal text-sm font-bold text-white">
-            C
-          </span>
+          <Image src="/logo-mark.png" alt="Circuit" width={28} height={28} />
           Circuit — Admin
         </div>
         <form onSubmit={handleSubmit} className="card space-y-4 p-6">

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth-context';
 
@@ -20,9 +21,7 @@ export function AdminSidebar() {
   return (
     <aside className="flex h-screen w-60 flex-col border-r border-line bg-surface px-4 py-6">
       <div className="mb-8 flex items-center gap-2 px-2 font-display text-lg font-semibold">
-        <span className="flex h-7 w-7 items-center justify-center rounded-md bg-signal text-xs font-bold text-white">
-          C
-        </span>
+        <Image src="/logo-mark.png" alt="Circuit" width={24} height={24} />
         Circuit
       </div>
       <nav className="flex-1 space-y-1">
