@@ -62,6 +62,12 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
               <h1 className="font-display text-5xl font-semibold tracking-tight">{torneio.nome}</h1>
               <p className="mt-4 max-w-2xl text-lg text-muted">{torneio.descricao}</p>
 
+              {torneio.status === 'inscricoes_abertas' && (
+                <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary mt-6 inline-flex">
+                  Inscrever meu time
+                </Link>
+              )}
+
               <div className="mt-8 flex flex-wrap gap-8 font-mono text-sm">
                 {torneio.dataInicio && (
                   <div>

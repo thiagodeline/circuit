@@ -73,7 +73,7 @@ export default async function TorneiosPage() {
             <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
               <div>
                 <p className="font-display text-2xl font-semibold text-live">{emAndamento.length}</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Ao vivo</p>
+                <p className="font-mono text-xs uppercase tracking-wider text-muted">Em andamento</p>
               </div>
               <div>
                 <p className="font-display text-2xl font-semibold text-signal">{inscricoesAbertas.length}</p>
