@@ -10,8 +10,14 @@ const estilos: Record<StatusTorneio, { label: string; className: string }> = {
 export function StatusBadge({ status }: { status: StatusTorneio }) {
   const e = estilos[status];
   return (
-    <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 font-mono text-xs ${e.className}`}>
-      {status === 'em_andamento' && <span className="h-1.5 w-1.5 rounded-full bg-live" />}
+    <span
+      className={`inline-flex items-center gap-2 border px-3 py-1 font-mono text-xs font-medium uppercase tracking-wider ${e.className}`}
+    >
+      {status === 'em_andamento' ? (
+        <span className="h-1.5 w-1.5 animate-pulse bg-live" />
+      ) : (
+        <span className="h-1.5 w-1.5 bg-current opacity-60" />
+      )}
       {e.label}
     </span>
   );

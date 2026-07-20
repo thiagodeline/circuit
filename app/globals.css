@@ -5,31 +5,44 @@
 @layer base {
   ::selection {
     background-color: #ff6a1a;
-    color: #0b0d12;
+    color: #08090b;
   }
   :focus-visible {
     outline: 2px solid #ff6a1a;
     outline-offset: 2px;
   }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+  }
+  h1 {
+    @apply uppercase tracking-tight;
+  }
 }
 
 @layer components {
   .eyebrow {
-    @apply font-mono text-xs uppercase tracking-[0.2em] text-signal;
+    @apply flex items-center gap-2 font-mono text-xs font-medium uppercase tracking-[0.25em] text-signal;
+  }
+  .eyebrow::before {
+    content: '';
+    @apply h-px w-5 bg-signal;
   }
   .card {
-    @apply rounded-xl border border-line bg-surface;
+    @apply relative border border-line bg-surface;
+    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
   }
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-lg bg-signal px-5 py-2.5 font-medium text-white transition hover:bg-signal/90;
+    @apply inline-flex items-center justify-center bg-signal px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-black transition hover:bg-signal/85;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   }
   .btn-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border border-line px-5 py-2.5 font-medium text-ink transition hover:bg-surface2;
+    @apply inline-flex items-center justify-center border border-line px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-ink transition hover:border-signal/60 hover:bg-surface2;
+    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
   }
   .input {
-    @apply w-full rounded-lg border border-line bg-surface2 px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:border-signal;
+    @apply w-full border border-line bg-surface2 px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:border-signal;
   }
   .label {
-    @apply mb-1.5 block text-sm font-medium text-muted;
+    @apply mb-1.5 block font-mono text-xs font-medium uppercase tracking-wider text-muted;
   }
 }

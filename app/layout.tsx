@@ -1,8 +1,8 @@
 import type { Metadata } from 'next';
-import { Space_Grotesk, Inter, IBM_Plex_Mono } from 'next/font/google';
+import { Oswald, Inter, IBM_Plex_Mono } from 'next/font/google';
 import './globals.css';
 
-const display = Space_Grotesk({
+const display = Oswald({
   subsets: ['latin'],
   variable: '--font-display',
   weight: ['500', '600', '700'],
