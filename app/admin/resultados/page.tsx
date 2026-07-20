@@ -50,15 +50,17 @@ export default function AdminResultadosPage() {
     if (!form.timeA || !form.timeB) return alert('Selecione os dois times.');
     setSalvando(true);
     try {
-      await criarPartida({
+      const dados: any = {
         torneioId,
         fase: form.fase,
         timeA: form.timeA,
         timeB: form.timeB,
-        placarA: form.placarA ? Number(form.placarA) : undefined,
-        placarB: form.placarB ? Number(form.placarB) : undefined,
         finalizada: form.finalizada,
-      });
+      };
+      if (form.placarA !== '') dados.placarA = Number(form.placarA);
+      if (form.placarB !== '') dados.placarB = Number(form.placarB);
+
+      await criarPartida(dados);
       setForm(vazio);
       await carregar(torneioId);
     } finally {
