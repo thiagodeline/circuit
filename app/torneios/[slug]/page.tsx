@@ -13,13 +13,6 @@ function ehFaseDeGrupo(fase: string) {
   return /grupo/i.test(fase);
 }
 
-const rotuloFormato: Record<string, string> = {
-  grupos_playoffs: 'Fase de grupos + playoffs',
-  mata_mata: 'Mata-mata',
-  todos_contra_todos: 'Todos contra todos',
-  outro: 'Formato personalizado',
-};
-
 export default async function TorneioDetalhePage({ params }: { params: { slug: string } }) {
   const torneio = await buscarTorneioPorSlug(params.slug).catch(() => null);
   if (!torneio) notFound();
@@ -32,16 +25,8 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
   const gruposDeTimes = Array.from(new Set(times.map((t) => t.grupo).filter(Boolean))) as string[];
   const fases = Array.from(new Set(partidas.map((p) => p.fase)));
-  const tipoFormato = torneio.formatoTipo || 'grupos_playoffs';
-
-  // Mata-mata: sem tabela de classificação, todas as fases são chaves
-  // Todos contra todos: uma única tabela combinada, sem separar por grupo
-  // Grupos + playoffs / outro: mantém a separação por nome de fase ("Grupo X" vs. resto)
-  const mostrarClassificacao = tipoFormato !== 'mata_mata';
-  const classificacaoUnica = tipoFormato === 'todos_contra_todos';
-
-  const fasesDeGrupo = tipoFormato === 'mata_mata' ? [] : fases.filter(ehFaseDeGrupo);
-  const fasesMataMata = tipoFormato === 'mata_mata' ? fases : fases.filter((f) => !ehFaseDeGrupo(f));
+  const fasesDeGrupo = fases.filter(ehFaseDeGrupo);
+  const fasesMataMata = fases.filter((f) => !ehFaseDeGrupo(f));
 
   return (
     <>
@@ -55,9 +40,7 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
             <div className="mx-auto max-w-6xl px-6 py-20">
               <div className="mb-4 flex items-center gap-3">
                 <StatusBadge status={torneio.status} />
-                <span className="font-mono text-xs text-muted">
-                  {rotuloFormato[torneio.formatoTipo || 'grupos_playoffs']} · {torneio.formato}
-                </span>
+                <span className="font-mono text-xs text-muted">{torneio.formato}</span>
               </div>
               <h1 className="font-display text-5xl font-semibold tracking-tight">{torneio.nome}</h1>
               <p className="mt-4 max-w-2xl text-lg text-muted">{torneio.descricao}</p>
@@ -103,23 +86,21 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
         </section>
 
         <div className="mx-auto max-w-6xl px-6 py-16">
-          {mostrarClassificacao && (gruposDeTimes.length > 0 || classificacaoUnica) && (
+          {gruposDeTimes.length > 0 && (
             <section className="mb-16">
               <h2 className="mb-6 font-display text-2xl font-semibold">Classificação</h2>
-              <div className={classificacaoUnica ? '' : 'grid gap-8 md:grid-cols-2'}>
-                {(classificacaoUnica ? ['__todos__'] : gruposDeTimes).map((grupo) => {
-                  const timesDoGrupo = classificacaoUnica ? times : times.filter((t) => t.grupo === grupo);
-                  const partidasDoGrupo = classificacaoUnica
-                    ? partidas
-                    : partidas.filter(
-                        (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
-                      );
+              <div className="grid gap-8 md:grid-cols-2">
+                {gruposDeTimes.map((grupo) => {
+                  const timesDoGrupo = times.filter((t) => t.grupo === grupo);
+                  const partidasDoGrupo = partidas.filter(
+                    (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
+                  );
                   const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
 
                   return (
                     <div key={grupo} className="card overflow-hidden">
                       <div className="border-b border-line bg-surface2 px-4 py-3">
-                        <p className="eyebrow">{classificacaoUnica ? 'Tabela geral' : grupo}</p>
+                        <p className="eyebrow">{grupo}</p>
                       </div>
                       <table className="w-full text-sm">
                         <thead>
@@ -157,9 +138,7 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
                           ))}
                         </tbody>
                       </table>
-                      {!classificacaoUnica && (
-                        <p className="border-t border-line px-4 py-2 text-xs text-muted">Os 2 primeiros avançam</p>
-                      )}
+                      <p className="border-t border-line px-4 py-2 text-xs text-muted">Os 2 primeiros avançam</p>
                     </div>
                   );
                 })}
@@ -169,9 +148,7 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
 
           {fasesDeGrupo.length > 0 && (
             <section className="mb-16">
-              <h2 className="mb-6 font-display text-2xl font-semibold">
-                {classificacaoUnica ? 'Partidas' : 'Partidas — Fase de grupos'}
-              </h2>
+              <h2 className="mb-6 font-display text-2xl font-semibold">Partidas — Fase de grupos</h2>
               <div className="space-y-8">
                 {fasesDeGrupo.map((fase) => (
                   <div key={fase}>

@@ -7,13 +7,6 @@ import { Torneio } from '@/types';
 
 export const revalidate = 60;
 
-const rotuloFormato: Record<string, string> = {
-  grupos_playoffs: 'Grupos + Playoffs',
-  mata_mata: 'Mata-mata',
-  todos_contra_todos: 'Todos contra todos',
-  outro: 'Formato personalizado',
-};
-
 function TorneioCard({ t, destaque = false }: { t: Torneio; destaque?: boolean }) {
   return (
     <Link
@@ -27,7 +20,7 @@ function TorneioCard({ t, destaque = false }: { t: Torneio; destaque?: boolean }
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <StatusBadge status={t.status} />
           <span className="rounded-full border border-line px-2.5 py-1 font-mono text-xs text-muted">
-            {rotuloFormato[t.formatoTipo || 'grupos_playoffs']}
+            Grupos + Playoffs
           </span>
         </div>
         <h3 className={`font-display font-semibold group-hover:text-signal ${destaque ? 'text-2xl' : 'text-xl'}`}>
