@@ -7,6 +7,7 @@ import { MatchRow } from '@/components/MatchRow';
 import { Bracket } from '@/components/Bracket';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
 import { calcularClassificacao } from '@/lib/classificacao';
+import { ordenarPartidasPorData } from '@/lib/ordenar';
 
 export const revalidate = 30;
 
@@ -119,7 +120,7 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
                 <section key={fase} id={`fase-${fase}`} className="scroll-mt-24">
                   <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">{fase}</h2>
                   <div className="space-y-2">
-                    {partidas.filter((p) => p.fase === fase).map((p) => (
+                    {ordenarPartidasPorData(partidas.filter((p) => p.fase === fase)).map((p) => (
                       <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
                     ))}
                   </div>

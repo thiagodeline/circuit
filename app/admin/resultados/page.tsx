@@ -11,9 +11,31 @@ import {
   atualizarPartida,
   excluirPartida,
 } from '@/lib/data';
-import { Torneio, Time, Partida } from '@/types';
+import { ordenarPartidasPorData } from '@/lib/ordenar';
+import { Torneio, Time, Partida, MapaJogado } from '@/types';
 
-const vazio = { fase: '', timeA: '', timeB: '', finalizada: false };
+const vazio = { fase: '', timeA: '', timeB: '', data: '' };
+
+// Converte texto tipo "Haven 13-2, Split 5-13" em MapaJogado[]
+function parsearMapas(texto: string): MapaJogado[] {
+  if (!texto.trim()) return [];
+  return texto
+    .split(',')
+    .map((parte) => parte.trim())
+    .filter(Boolean)
+    .map((parte) => {
+      const match = parte.match(/^(.+?)\s+(\d+)\s*-\s*(\d+)$/);
+      if (!match) return null;
+      const [, nome, a, b] = match;
+      return { nome: nome.trim(), placarA: Number(a), placarB: Number(b) };
+    })
+    .filter((m): m is MapaJogado => m !== null);
+}
+
+function formatarMapas(mapas?: MapaJogado[]): string {
+  if (!mapas || mapas.length === 0) return '';
+  return mapas.map((m) => `${m.nome} ${m.placarA}-${m.placarB}`).join(', ');
+}
 
 export default function AdminResultadosPage() {
   const [torneios, setTorneios] = useState<Torneio[]>([]);
@@ -50,15 +72,16 @@ export default function AdminResultadosPage() {
     if (!form.fase) return alert('Preencha a fase.');
     setSalvando(true);
     try {
-      // timeA/timeB podem ficar em branco — significa "a definir" (útil pra criar
-      // os slots dos playoffs antes de saber quem se classificou)
-      await criarPartida({
+      const dados: any = {
         torneioId,
         fase: form.fase,
         timeA: form.timeA,
         timeB: form.timeB,
         finalizada: false,
-      });
+      };
+      if (form.data) dados.data = form.data;
+
+      await criarPartida(dados);
       setForm(vazio);
       await carregar(torneioId);
     } finally {
@@ -76,11 +99,23 @@ export default function AdminResultadosPage() {
     await carregar(torneioId);
   }
 
+  async function atualizarData(p: Partida, valor: string) {
+    await atualizarPartida(p.id, { data: valor });
+    await carregar(torneioId);
+  }
+
+  async function atualizarMapas(p: Partida, texto: string) {
+    await atualizarPartida(p.id, { mapas: parsearMapas(texto) });
+    await carregar(torneioId);
+  }
+
   async function excluir(id: string) {
     if (!confirm('Excluir esta partida?')) return;
     await excluirPartida(id);
     await carregar(torneioId);
   }
+
+  const partidasOrdenadas = ordenarPartidasPorData(partidas);
 
   return (
     <RequireAuth>
@@ -101,8 +136,8 @@ export default function AdminResultadosPage() {
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
             <div className="space-y-3">
-              {partidas.length === 0 && <p className="text-muted">Nenhuma partida cadastrada.</p>}
-              {partidas.map((p) => (
+              {partidasOrdenadas.length === 0 && <p className="text-muted">Nenhuma partida cadastrada.</p>}
+              {partidasOrdenadas.map((p) => (
                 <div key={p.id} className="card p-4">
                   <div className="mb-2 flex items-center justify-between">
                     <span className="font-mono text-xs text-signal">{p.fase}</span>
@@ -143,6 +178,28 @@ export default function AdminResultadosPage() {
                       {times.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
                     </select>
                   </div>
+
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="label">Data/horário</label>
+                      <input
+                        type="datetime-local"
+                        defaultValue={p.data ?? ''}
+                        className="input"
+                        onBlur={(e) => atualizarData(p, e.target.value)}
+                      />
+                    </div>
+                    <div>
+                      <label className="label">Mapas (ex: Haven 13-2, Split 5-13)</label>
+                      <input
+                        type="text"
+                        defaultValue={formatarMapas(p.mapas)}
+                        className="input"
+                        placeholder="Haven 13-2, Split 5-13"
+                        onBlur={(e) => atualizarMapas(p, e.target.value)}
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -167,13 +224,22 @@ export default function AdminResultadosPage() {
                   {times.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
                 </select>
               </div>
+              <div>
+                <label className="label">Data/horário (opcional)</label>
+                <input
+                  type="datetime-local"
+                  className="input"
+                  value={form.data}
+                  onChange={(e) => setForm({ ...form, data: e.target.value })}
+                />
+              </div>
               <button type="submit" disabled={salvando} className="btn-primary w-full disabled:opacity-60">
                 {salvando ? 'Criando…' : 'Criar partida'}
               </button>
               <p className="text-xs text-muted">
                 Para os playoffs: crie a partida deixando os times como "A definir" — depois, quando
-                souber quem se classificou, volte aqui e escolha os times na lista ao lado. O placar
-                também salva direto na lista ao sair do campo.
+                souber quem se classificou, volte aqui e escolha os times na lista ao lado. Placar,
+                data e mapas também salvam direto na lista, ao sair do campo.
               </p>
             </form>
           </div>

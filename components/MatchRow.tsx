@@ -27,11 +27,23 @@ function TimeSlot({ time, alinhamento }: { time?: Time; alinhamento: 'esquerda' 
   );
 }
 
+function formatarData(data: string) {
+  const d = new Date(data);
+  if (isNaN(d.getTime())) return null;
+  const temHora = data.includes('T');
+  return d.toLocaleDateString('pt-BR', {
+    day: '2-digit',
+    month: '2-digit',
+    ...(temHora ? { hour: '2-digit', minute: '2-digit' } : {}),
+  });
+}
+
 export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId: Record<string, Time> }) {
   const a = timesPorId[partida.timeA];
   const b = timesPorId[partida.timeB];
   const aVenceu = partida.finalizada && (partida.placarA ?? 0) > (partida.placarB ?? 0);
   const bVenceu = partida.finalizada && (partida.placarB ?? 0) > (partida.placarA ?? 0);
+  const dataFormatada = partida.data ? formatarData(partida.data) : null;
 
   return (
     <div className="border border-line bg-surface transition hover:border-signal/40">
@@ -56,9 +68,26 @@ export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId
           <TimeSlot time={b} alinhamento="direita" />
         </div>
       </div>
+
+      {/* MAPAS JOGADOS */}
+      {partida.mapas && partida.mapas.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-line px-4 py-2 font-mono text-xs text-muted sm:px-5">
+          {partida.mapas.map((m, i) => (
+            <span key={i}>
+              {m.nome} <span className="text-ink">{m.placarA}</span>
+              <span className="text-line"> x </span>
+              <span className="text-ink">{m.placarB}</span>
+            </span>
+          ))}
+        </div>
+      )}
+
       <div className="flex items-center justify-between border-t border-line px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-muted sm:px-5">
         <span>{partida.fase}</span>
-        <span>{partida.finalizada ? 'Encerrada' : 'A definir'}</span>
+        <span className="flex items-center gap-3">
+          {dataFormatada && <span>{dataFormatada}</span>}
+          <span>{partida.finalizada ? 'Encerrada' : 'A definir'}</span>
+        </span>
       </div>
     </div>
   );

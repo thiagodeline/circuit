@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { buscarTimePorId, listarPartidasPorTorneio } from '@/lib/data';
+import { ordenarPartidasPorData } from '@/lib/ordenar';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { Torneio, Time } from '@/types';
@@ -19,9 +20,7 @@ export default async function PerfilTimePage({ params }: { params: { id: string 
   const partidas = torneio ? await listarPartidasPorTorneio(torneio.id).catch(() => []) : [];
 
   const partidasDoTime = partidas.filter((p) => p.timeA === time.id || p.timeB === time.id);
-  const resultadosFinalizados = partidasDoTime
-    .filter((p) => p.finalizada)
-    .sort((a, b) => b.criadoEm - a.criadoEm);
+  const resultadosFinalizados = ordenarPartidasPorData(partidasDoTime.filter((p) => p.finalizada));
 
   const vitorias = resultadosFinalizados.filter((p) => {
     const meuPlacar = p.timeA === time.id ? p.placarA : p.placarB;

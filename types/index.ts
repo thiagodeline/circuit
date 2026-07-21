@@ -30,6 +30,12 @@ export interface Time {
   criadoEm: number;
 }
 
+export interface MapaJogado {
+  nome: string; // ex: "Haven"
+  placarA: number;
+  placarB: number;
+}
+
 export interface Partida {
   id: string;
   torneioId: string;
@@ -38,7 +44,8 @@ export interface Partida {
   timeB: string;
   placarA?: number;
   placarB?: number;
-  data?: string;
+  mapas?: MapaJogado[]; // placar mapa a mapa (ex: Haven 13x2, Split 13x5)
+  data?: string; // ISO date/datetime da partida
   finalizada: boolean;
   criadoEm: number;
 }
