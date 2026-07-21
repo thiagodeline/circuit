@@ -3,9 +3,9 @@ import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
+import { MatchRow } from '@/components/MatchRow';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
 import { calcularClassificacao } from '@/lib/classificacao';
-import { Partida, Time } from '@/types';
 
 export const revalidate = 30;
 
@@ -28,22 +28,30 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
   const fasesDeGrupo = fases.filter(ehFaseDeGrupo);
   const fasesMataMata = fases.filter((f) => !ehFaseDeGrupo(f));
 
+  // Ordem de navegação lateral: grupos primeiro, depois fases de playoff, depois times
+  const itensNav = [
+    ...fasesDeGrupo.map((f) => ({ id: `fase-${f}`, label: f })),
+    ...fasesMataMata.map((f) => ({ id: `fase-${f}`, label: f })),
+    { id: 'times', label: 'Times' },
+  ];
+
   return (
     <>
       <SiteHeader />
       <main>
+        {/* CAPA / CABEÇALHO DO TORNEIO */}
         <section
           className="relative border-b border-line bg-cover bg-center"
           style={torneio.capa ? { backgroundImage: `url(${torneio.capa})` } : undefined}
         >
-          <div className="bg-gradient-to-t from-base via-base/90 to-base/40">
-            <div className="mx-auto max-w-6xl px-6 py-20">
+          <div className="bg-gradient-to-t from-base via-base/92 to-base/50">
+            <div className="mx-auto max-w-[1400px] px-6 py-14">
               <div className="mb-4 flex items-center gap-3">
                 <StatusBadge status={torneio.status} />
                 <span className="font-mono text-xs text-muted">{torneio.formato}</span>
               </div>
-              <h1 className="font-display text-5xl font-semibold tracking-tight">{torneio.nome}</h1>
-              <p className="mt-4 max-w-2xl text-lg text-muted">{torneio.descricao}</p>
+              <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-5xl">{torneio.nome}</h1>
+              <p className="mt-3 max-w-2xl text-muted">{torneio.descricao}</p>
 
               {torneio.status === 'inscricoes_abertas' && (
                 <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary mt-6 inline-flex">
@@ -76,169 +84,134 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
                     <p className="mt-1 text-signal">{torneio.premiacao}</p>
                   </div>
                 )}
-                <div>
-                  <p className="text-xs uppercase tracking-wider text-muted">Times</p>
-                  <p className="mt-1 text-ink">{times.length}</p>
-                </div>
               </div>
             </div>
           </div>
         </section>
 
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          {gruposDeTimes.length > 0 && (
-            <section className="mb-16">
-              <h2 className="mb-6 font-display text-2xl font-semibold">Classificação</h2>
-              <div className="grid gap-8 md:grid-cols-2">
-                {gruposDeTimes.map((grupo) => {
-                  const timesDoGrupo = times.filter((t) => t.grupo === grupo);
-                  const partidasDoGrupo = partidas.filter(
-                    (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
-                  );
-                  const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
+        {/* LAYOUT 3 COLUNAS */}
+        <div className="mx-auto max-w-[1400px] px-6 py-10">
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[200px_1fr_300px]">
+            {/* NAV LATERAL ESQUERDA */}
+            <aside className="hidden lg:block">
+              <div className="sticky top-24 space-y-1">
+                <p className="eyebrow mb-3">Neste torneio</p>
+                {itensNav.map((item) => (
+                  <a
+                    key={item.id}
+                    href={`#${item.id}`}
+                    className="block border-l-2 border-transparent py-1.5 pl-3 text-sm text-muted transition hover:border-signal hover:text-ink"
+                  >
+                    {item.label}
+                  </a>
+                ))}
+              </div>
+            </aside>
 
-                  return (
-                    <div key={grupo} className="card overflow-hidden">
-                      <div className="border-b border-line bg-surface2 px-4 py-3">
-                        <p className="eyebrow">{grupo}</p>
-                      </div>
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-left text-xs text-muted">
-                            <th className="px-4 py-2 font-normal">Time</th>
-                            <th className="px-2 py-2 text-center font-normal">V</th>
-                            <th className="px-2 py-2 text-center font-normal">D</th>
-                            <th className="px-2 py-2 text-center font-normal">Mapas V</th>
-                            <th className="px-2 py-2 text-center font-normal">Mapas D</th>
-                            <th className="px-2 py-2 text-center font-normal">Saldo</th>
-                            <th className="px-2 py-2 text-center font-normal">Pts</th>
+            {/* CONTEÚDO CENTRAL: PARTIDAS */}
+            <div className="min-w-0 space-y-12">
+              {fases.length === 0 && (
+                <p className="text-muted">As partidas ainda não foram definidas.</p>
+              )}
+
+              {fasesDeGrupo.map((fase) => (
+                <section key={fase} id={`fase-${fase}`} className="scroll-mt-24">
+                  <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">{fase}</h2>
+                  <div className="space-y-2">
+                    {partidas.filter((p) => p.fase === fase).map((p) => (
+                      <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+              {fasesMataMata.map((fase) => (
+                <section key={fase} id={`fase-${fase}`} className="scroll-mt-24">
+                  <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">{fase}</h2>
+                  <div className="space-y-2">
+                    {partidas.filter((p) => p.fase === fase).map((p) => (
+                      <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
+                    ))}
+                  </div>
+                </section>
+              ))}
+
+              {/* TIMES */}
+              <section id="times" className="scroll-mt-24">
+                <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">Times inscritos</h2>
+                {times.length === 0 ? (
+                  <p className="text-muted">Nenhum time inscrito ainda.</p>
+                ) : (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    {times.map((t) => (
+                      <Link key={t.id} href={`/times/${t.id}`} className="card group flex items-center gap-3 p-4 transition hover:border-signal/50">
+                        {t.logo ? (
+                          <img src={t.logo} alt={t.nome} className="h-10 w-10 flex-shrink-0 object-cover" />
+                        ) : (
+                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-xs text-muted">
+                            {t.tag.slice(0, 3)}
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
+                          <p className="font-mono text-xs text-signal">{t.tag}</p>
+                          {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
+                        </div>
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </section>
+            </div>
+
+            {/* SIDEBAR DIREITA: CLASSIFICAÇÃO */}
+            <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit">
+              <p className="eyebrow">Classificação</p>
+              {gruposDeTimes.length === 0 && <p className="text-sm text-muted">Sem grupos definidos ainda.</p>}
+              {gruposDeTimes.map((grupo) => {
+                const timesDoGrupo = times.filter((t) => t.grupo === grupo);
+                const partidasDoGrupo = partidas.filter(
+                  (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
+                );
+                const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
+
+                return (
+                  <div key={grupo} className="card overflow-hidden">
+                    <div className="border-b border-line bg-surface2 px-3 py-2">
+                      <p className="font-mono text-xs font-medium uppercase tracking-wider">{grupo}</p>
+                    </div>
+                    <table className="w-full text-xs">
+                      <thead>
+                        <tr className="text-left text-muted">
+                          <th className="px-3 py-1.5 font-normal">Time</th>
+                          <th className="px-1 py-1.5 text-center font-normal">V</th>
+                          <th className="px-1 py-1.5 text-center font-normal">D</th>
+                          <th className="px-1 py-1.5 text-center font-normal">Pts</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {classificacao.map((linha, i) => (
+                          <tr key={linha.time.id} className={i < 2 ? 'bg-signal/5' : ''}>
+                            <td className="max-w-[110px] truncate px-3 py-1.5 font-medium">
+                              <Link href={`/times/${linha.time.id}`} className="hover:text-signal">
+                                {linha.time.tag}
+                              </Link>
+                            </td>
+                            <td className="px-1 py-1.5 text-center font-mono text-live">{linha.vitorias}</td>
+                            <td className="px-1 py-1.5 text-center font-mono text-alert">{linha.derrotas}</td>
+                            <td className="px-1 py-1.5 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
                           </tr>
-                        </thead>
-                        <tbody>
-                          {classificacao.map((linha, i) => (
-                            <tr key={linha.time.id} className={i < 2 ? 'bg-signal/5' : ''}>
-                              <td className="px-4 py-2.5">
-                                <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
-                                  <span className="w-4 font-mono text-xs text-muted">{i + 1}</span>
-                                  {linha.time.logo ? (
-                                    <img src={linha.time.logo} alt="" className="h-5 w-5 rounded object-cover" />
-                                  ) : null}
-                                  <span className="truncate font-medium">{linha.time.nome}</span>
-                                </Link>
-                              </td>
-                              <td className="px-2 py-2.5 text-center font-mono text-live">{linha.vitorias}</td>
-                              <td className="px-2 py-2.5 text-center font-mono text-alert">{linha.derrotas}</td>
-                              <td className="px-2 py-2.5 text-center font-mono text-muted">{linha.mapasVencidos}</td>
-                              <td className="px-2 py-2.5 text-center font-mono text-muted">{linha.mapasPerdidos}</td>
-                              <td className="px-2 py-2.5 text-center font-mono text-muted">
-                                {linha.saldo > 0 ? `+${linha.saldo}` : linha.saldo}
-                              </td>
-                              <td className="px-2 py-2.5 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                      <p className="border-t border-line px-4 py-2 text-xs text-muted">Os 2 primeiros avançam</p>
-                    </div>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          {fasesDeGrupo.length > 0 && (
-            <section className="mb-16">
-              <h2 className="mb-6 font-display text-2xl font-semibold">Partidas — Fase de grupos</h2>
-              <div className="space-y-8">
-                {fasesDeGrupo.map((fase) => (
-                  <div key={fase}>
-                    <p className="eyebrow mb-3">{fase}</p>
-                    <div className="grid gap-2 sm:grid-cols-2">
-                      {partidas.filter((p) => p.fase === fase).map((p) => (
-                        <PartidaCard key={p.id} partida={p} timesPorId={timesPorId} />
-                      ))}
-                    </div>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {fasesMataMata.length > 0 && (
-            <section className="mb-16">
-              <h2 className="mb-6 font-display text-2xl font-semibold">Playoffs</h2>
-              <div className="flex flex-col gap-8 sm:flex-row sm:items-center">
-                {fasesMataMata.map((fase) => (
-                  <div key={fase} className="flex-1">
-                    <p className="eyebrow mb-3">{fase}</p>
-                    <div className="space-y-3">
-                      {partidas.filter((p) => p.fase === fase).map((p) => (
-                        <PartidaCard key={p.id} partida={p} timesPorId={timesPorId} destaque />
-                      ))}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {fases.length === 0 && <p className="text-muted">As partidas ainda não foram definidas.</p>}
-
-          <section>
-            <h2 className="mb-6 font-display text-2xl font-semibold">Times inscritos</h2>
-            {times.length === 0 ? (
-              <p className="text-muted">Nenhum time inscrito ainda.</p>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-                {times.map((t) => (
-                  <Link key={t.id} href={`/times/${t.id}`} className="card group flex items-center gap-3 p-4 transition hover:border-signal/50">
-                    {t.logo ? (
-                      <img src={t.logo} alt={t.nome} className="h-10 w-10 flex-shrink-0 rounded-md object-cover" />
-                    ) : (
-                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-surface2 font-mono text-xs text-muted">
-                        {t.tag.slice(0, 3)}
-                      </div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
-                      <p className="font-mono text-xs text-signal">{t.tag}</p>
-                      {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
-                    </div>
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
+                );
+              })}
+            </aside>
+          </div>
         </div>
       </main>
       <SiteFooter />
     </>
-  );
-}
-
-function PartidaCard({
-  partida,
-  timesPorId,
-  destaque,
-}: {
-  partida: Partida;
-  timesPorId: Record<string, Time>;
-  destaque?: boolean;
-}) {
-  const a = timesPorId[partida.timeA];
-  const b = timesPorId[partida.timeB];
-  const aVenceu = partida.finalizada && (partida.placarA ?? 0) > (partida.placarB ?? 0);
-  const bVenceu = partida.finalizada && (partida.placarB ?? 0) > (partida.placarA ?? 0);
-
-  return (
-    <div className={`card p-4 ${destaque ? 'border-line' : ''}`}>
-      <div className="flex items-center justify-between">
-        <span className={`w-2/5 truncate font-medium ${aVenceu ? 'text-ink' : 'text-muted'}`}>{a?.nome ?? '—'}</span>
-        <span className={`font-mono ${partida.finalizada ? 'text-signal' : 'text-muted'}`}>
-          {partida.finalizada ? `${partida.placarA} : ${partida.placarB}` : 'vs'}
-        </span>
-        <span className={`w-2/5 truncate text-right font-medium ${bVenceu ? 'text-ink' : 'text-muted'}`}>{b?.nome ?? '—'}</span>
-      </div>
-    </div>
   );
 }
