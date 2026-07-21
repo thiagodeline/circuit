@@ -12,6 +12,7 @@ export interface Torneio {
   local?: string; // ex: "Online" ou "São Paulo, SP"
   premiacao?: string; // ex: "R$ 2.000 para o campeão"
   regras?: string; // texto livre com regras/observações
+  valorInscricao?: number; // em reais; vazio/0 = inscrição gratuita
   capa?: string; // URL da imagem de capa
   criadoEm: number;
 }
@@ -61,7 +62,12 @@ export interface Noticia {
   autor: string;
 }
 
-export type StatusInscricao = 'pendente' | 'aprovada' | 'rejeitada';
+export type StatusInscricao =
+  | 'aguardando_pagamento'
+  | 'pagamento_recusado'
+  | 'pendente'
+  | 'aprovada'
+  | 'rejeitada';
 
 export interface Inscricao {
   id: string;
@@ -72,6 +78,8 @@ export interface Inscricao {
   contato: string;
   jogadores: string[];
   status: StatusInscricao;
+  valorPago?: number; // em reais, preenchido quando a inscrição exige pagamento
+  paymentId?: string; // id do pagamento no Mercado Pago
   criadoEm: number;
 }
 

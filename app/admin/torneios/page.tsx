@@ -18,6 +18,7 @@ const vazio = {
   local: '',
   premiacao: '',
   regras: '',
+  valorInscricao: '',
   capa: '',
 };
 
@@ -49,6 +50,7 @@ export default function AdminTorneiosPage() {
       local: t.local || '',
       premiacao: t.premiacao || '',
       regras: t.regras || '',
+      valorInscricao: t.valorInscricao ? String(t.valorInscricao) : '',
       capa: t.capa || '',
     });
   }
@@ -62,10 +64,17 @@ export default function AdminTorneiosPage() {
     e.preventDefault();
     setSalvando(true);
     try {
-      if (editando) {
-        await atualizarTorneio(editando, form);
+      const dados: any = { ...form };
+      if (form.valorInscricao) {
+        dados.valorInscricao = Number(form.valorInscricao);
       } else {
-        await criarTorneio(form);
+        delete dados.valorInscricao; // sem valor = inscrição gratuita
+      }
+
+      if (editando) {
+        await atualizarTorneio(editando, dados);
+      } else {
+        await criarTorneio(dados);
       }
       cancelar();
       await carregar();
@@ -216,6 +225,21 @@ export default function AdminTorneiosPage() {
                   onChange={(e) => setForm({ ...form, regras: e.target.value })}
                   placeholder="Regras de campeonato, formato de partida (MD1/MD3), horários, etc."
                 />
+              </div>
+              <div>
+                <label className="label">Valor da inscrição (R$)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0"
+                  className="input"
+                  value={form.valorInscricao}
+                  onChange={(e) => setForm({ ...form, valorInscricao: e.target.value })}
+                  placeholder="Deixe em branco para inscrição gratuita"
+                />
+                <p className="mt-1 text-xs text-muted">
+                  Se preenchido, o time precisa pagar via PIX (Mercado Pago) para concluir a inscrição.
+                </p>
               </div>
               <div>
                 <label className="label">URL da imagem de capa</label>

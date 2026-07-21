@@ -69,8 +69,9 @@ export default function AdminInscricoesPage() {
     await carregar(torneioId);
   }
 
+  const aguardandoPagamento = inscricoes.filter((i) => i.status === 'aguardando_pagamento');
   const pendentes = inscricoes.filter((i) => i.status === 'pendente');
-  const processadas = inscricoes.filter((i) => i.status !== 'pendente');
+  const processadas = inscricoes.filter((i) => !['pendente', 'aguardando_pagamento'].includes(i.status));
 
   return (
     <RequireAuth>
@@ -89,6 +90,23 @@ export default function AdminInscricoesPage() {
             </select>
           </div>
 
+          {aguardandoPagamento.length > 0 && (
+            <section className="mt-10">
+              <h2 className="mb-4 font-display text-lg font-semibold">Aguardando pagamento ({aguardandoPagamento.length})</h2>
+              <p className="mb-3 text-xs text-muted">
+                Times que começaram a inscrição mas ainda não confirmaram o PIX. Aparecem aqui só como acompanhamento — nada pra fazer ainda.
+              </p>
+              <div className="space-y-2">
+                {aguardandoPagamento.map((i) => (
+                  <div key={i.id} className="card flex items-center justify-between p-4">
+                    <p className="font-medium">{i.nomeTime} <span className="font-mono text-xs text-muted">({i.tag})</span></p>
+                    <span className="font-mono text-xs text-muted">R$ {i.valorPago?.toFixed(2)}</span>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           <section className="mt-10">
             <h2 className="mb-4 font-display text-lg font-semibold">Pendentes ({pendentes.length})</h2>
             {pendentes.length === 0 && <p className="text-muted">Nenhuma inscrição pendente.</p>}
@@ -100,6 +118,9 @@ export default function AdminInscricoesPage() {
                       <p className="font-display font-semibold">{i.nomeTime} <span className="font-mono text-xs text-muted">({i.tag})</span></p>
                       <p className="mt-1 text-sm text-muted">Capitão: {i.capitao} · Contato: {i.contato}</p>
                       <p className="mt-1 text-xs text-muted">Jogadores: {i.jogadores.join(', ')}</p>
+                      {i.valorPago && (
+                        <p className="mt-1 font-mono text-xs text-signal">Pago: R$ {i.valorPago.toFixed(2)}</p>
+                      )}
                     </div>
                     <div className="flex gap-2">
                       <button
@@ -132,7 +153,11 @@ export default function AdminInscricoesPage() {
                     <div>
                       <p className="font-medium">{i.nomeTime} <span className="font-mono text-xs text-muted">({i.tag})</span></p>
                       <p className="font-mono text-xs uppercase tracking-wider text-muted">
-                        {i.status === 'aprovada' ? 'Aprovada — time criado' : 'Rejeitada'}
+                        {i.status === 'aprovada'
+                          ? 'Aprovada — time criado'
+                          : i.status === 'rejeitada'
+                          ? 'Rejeitada'
+                          : 'Pagamento recusado'}
                       </p>
                     </div>
                     <button onClick={() => excluir(i.id)} className="text-xs text-muted hover:text-alert">Excluir</button>
