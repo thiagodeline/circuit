@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { Partida, Time } from '@/types';
 
 function TimeSlot({ time, alinhamento }: { time?: Time; alinhamento: 'esquerda' | 'direita' }) {
@@ -19,8 +18,8 @@ function TimeSlot({ time, alinhamento }: { time?: Time; alinhamento: 'esquerda' 
 
   return (
     <div
-      className={`flex min-w-0 flex-1 items-center gap-2.5 ${
-        alinhamento === 'direita' ? 'flex-row-reverse text-right' : ''
+      className={`flex min-w-0 items-center gap-2.5 ${
+        alinhamento === 'direita' ? 'flex-row-reverse justify-self-end text-right' : 'justify-self-start'
       }`}
     >
       {conteudo}
@@ -36,8 +35,10 @@ export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId
 
   return (
     <div className="border border-line bg-surface transition hover:border-signal/40">
-      <div className="flex items-center gap-4 px-4 py-3.5 sm:gap-6 sm:px-5">
-        <div className={aVenceu ? 'opacity-100' : partida.finalizada ? 'opacity-50' : ''}>
+      {/* grid de 3 colunas com a coluna central de largura fixa garante o placar
+          sempre exatamente centralizado, independente do tamanho dos nomes dos times */}
+      <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-3.5 sm:gap-6 sm:px-5">
+        <div className={`min-w-0 ${aVenceu ? 'opacity-100' : partida.finalizada ? 'opacity-50' : ''}`}>
           <TimeSlot time={a} alinhamento="esquerda" />
         </div>
 
@@ -51,7 +52,7 @@ export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId
           </span>
         </div>
 
-        <div className={bVenceu ? 'opacity-100' : partida.finalizada ? 'opacity-50' : ''}>
+        <div className={`min-w-0 ${bVenceu ? 'opacity-100' : partida.finalizada ? 'opacity-50' : ''}`}>
           <TimeSlot time={b} alinhamento="direita" />
         </div>
       </div>

@@ -190,8 +190,15 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
                         {classificacao.map((linha, i) => (
                           <tr key={linha.time.id} className={i < 2 ? 'bg-signal/5' : ''}>
                             <td className="max-w-[110px] truncate px-3 py-1.5 font-medium">
-                              <Link href={`/times/${linha.time.id}`} className="hover:text-signal">
-                                {linha.time.tag}
+                              <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
+                                {linha.time.logo ? (
+                                  <img src={linha.time.logo} alt="" className="h-4 w-4 flex-shrink-0 object-cover" />
+                                ) : (
+                                  <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-[8px] text-muted">
+                                    {linha.time.tag.slice(0, 2)}
+                                  </div>
+                                )}
+                                <span className="truncate">{linha.time.tag}</span>
                               </Link>
                             </td>
                             <td className="px-1 py-1.5 text-center font-mono text-live">{linha.vitorias}</td>

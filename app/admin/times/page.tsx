@@ -6,7 +6,7 @@ import { AdminSidebar } from '@/components/AdminSidebar';
 import { listarTorneios, listarTimesPorTorneio, criarTime, atualizarTime, excluirTime } from '@/lib/data';
 import { Torneio, Time } from '@/types';
 
-const vazio = { nome: '', tag: '', logo: '', bio: '', capitao: '', contato: '', grupo: '', jogadores: '' };
+const vazio = { nome: '', tag: '', logo: '', bio: '', contato: '', grupo: '' };
 
 export default function AdminTimesPage() {
   const [torneios, setTorneios] = useState<Torneio[]>([]);
@@ -42,10 +42,8 @@ export default function AdminTimesPage() {
       tag: t.tag,
       logo: t.logo || '',
       bio: t.bio || '',
-      capitao: t.capitao,
       contato: t.contato,
       grupo: t.grupo || '',
-      jogadores: t.jogadores.join(', '),
     });
   }
 
@@ -64,10 +62,8 @@ export default function AdminTimesPage() {
       tag: form.tag,
       logo: form.logo,
       bio: form.bio,
-      capitao: form.capitao,
       contato: form.contato,
       grupo: form.grupo,
-      jogadores: form.jogadores.split(',').map((j) => j.trim()).filter(Boolean),
     };
     try {
       if (editando) {
@@ -120,7 +116,7 @@ export default function AdminTimesPage() {
                     )}
                     <div>
                       <p className="font-display font-semibold">{t.nome} <span className="font-mono text-xs text-muted">({t.tag})</span></p>
-                      <p className="text-xs text-muted">Capitão: {t.capitao} {t.grupo && `· ${t.grupo}`}</p>
+                      <p className="text-xs text-muted">{t.grupo}</p>
                     </div>
                   </div>
                   <div className="flex gap-2">
@@ -146,10 +142,6 @@ export default function AdminTimesPage() {
                 <input className="input" value={form.logo} onChange={(e) => setForm({ ...form, logo: e.target.value })} placeholder="https://..." />
               </div>
               <div>
-                <label className="label">Capitão</label>
-                <input required className="input" value={form.capitao} onChange={(e) => setForm({ ...form, capitao: e.target.value })} />
-              </div>
-              <div>
                 <label className="label">Contato (Discord/email)</label>
                 <input className="input" value={form.contato} onChange={(e) => setForm({ ...form, contato: e.target.value })} />
               </div>
@@ -160,10 +152,6 @@ export default function AdminTimesPage() {
               <div>
                 <label className="label">Grupo</label>
                 <input className="input" value={form.grupo} onChange={(e) => setForm({ ...form, grupo: e.target.value })} placeholder="Grupo A" />
-              </div>
-              <div>
-                <label className="label">Jogadores (separados por vírgula)</label>
-                <textarea className="input min-h-16" value={form.jogadores} onChange={(e) => setForm({ ...form, jogadores: e.target.value })} />
               </div>
               <div className="flex gap-2 pt-2">
                 <button type="submit" disabled={salvando} className="btn-primary flex-1 disabled:opacity-60">
