@@ -181,17 +181,20 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
                     <table className="w-full text-xs">
                       <thead>
                         <tr className="text-left text-muted">
-                          <th className="px-3 py-1.5 font-normal">Time</th>
-                          <th className="px-1 py-1.5 text-center font-normal">V</th>
-                          <th className="px-1 py-1.5 text-center font-normal">D</th>
-                          <th className="px-1 py-1.5 text-center font-normal">Pts</th>
+                          <th className="px-2 py-1.5 font-normal">Time</th>
+                          <th className="px-0.5 py-1.5 text-center font-normal">V</th>
+                          <th className="px-0.5 py-1.5 text-center font-normal">D</th>
+                          <th className="px-0.5 py-1.5 text-center font-normal">MV</th>
+                          <th className="px-0.5 py-1.5 text-center font-normal">MD</th>
+                          <th className="px-0.5 py-1.5 text-center font-normal">Saldo</th>
+                          <th className="px-1 py-1.5 text-center font-normal">P</th>
                         </tr>
                       </thead>
                       <tbody>
                         {classificacao.map((linha, i) => (
                           <tr key={linha.time.id} className={i < 2 ? 'bg-signal/5' : ''}>
-                            <td className="max-w-[110px] truncate px-3 py-1.5 font-medium">
-                              <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
+                            <td className="max-w-[70px] truncate px-2 py-1.5 font-medium">
+                              <Link href={`/times/${linha.time.id}`} className="flex items-center gap-1.5 hover:text-signal">
                                 {linha.time.logo ? (
                                   <img src={linha.time.logo} alt="" className="h-4 w-4 flex-shrink-0 object-cover" />
                                 ) : (
@@ -202,8 +205,13 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
                                 <span className="truncate">{linha.time.tag}</span>
                               </Link>
                             </td>
-                            <td className="px-1 py-1.5 text-center font-mono text-live">{linha.vitorias}</td>
-                            <td className="px-1 py-1.5 text-center font-mono text-alert">{linha.derrotas}</td>
+                            <td className="px-0.5 py-1.5 text-center font-mono text-live">{linha.vitorias}</td>
+                            <td className="px-0.5 py-1.5 text-center font-mono text-alert">{linha.derrotas}</td>
+                            <td className="px-0.5 py-1.5 text-center font-mono text-muted">{linha.mapasVencidos}</td>
+                            <td className="px-0.5 py-1.5 text-center font-mono text-muted">{linha.mapasPerdidos}</td>
+                            <td className="px-0.5 py-1.5 text-center font-mono text-muted">
+                              {linha.saldo > 0 ? `+${linha.saldo}` : linha.saldo}
+                            </td>
                             <td className="px-1 py-1.5 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
                           </tr>
                         ))}

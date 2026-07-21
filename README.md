@@ -100,3 +100,65 @@ cadastra algo — não precisa criá-las manualmente no Firestore.
 5. Vá em **Notícias** para publicar os primeiros textos
 
 Tudo isso aparece automaticamente no site público, em `/torneios/circuit-zen`.
+
+## Inscrição paga (PIX via Mercado Pago)
+
+Torneios podem ter um valor de inscrição — nesse caso o time paga via PIX antes da
+inscrição ser enviada pra staff revisar. Pra ativar isso:
+
+### 1. Pegar o Access Token do Mercado Pago
+
+1. Acesse https://www.mercadopago.com.br/developers/panel/app
+2. Crie uma aplicação (ou use uma existente)
+3. Vá em **Credenciais de produção** e copie o **Access Token** (começa com `APP_USR-...`)
+   - Use as credenciais de **teste** primeiro pra validar o fluxo, e só troque pra produção
+     quando estiver tudo funcionando
+
+### 2. Gerar a chave de serviço do Firebase (permite ao servidor escrever no Firestore com segurança)
+
+1. No Firebase Console, vá em **Configurações do projeto > Contas de serviço**
+2. Clique em **Gerar nova chave privada** — baixa um arquivo `.json`
+3. Converta esse arquivo pra base64 (necessário porque variáveis de ambiente não aceitam
+   quebras de linha bem). No terminal:
+   ```bash
+   base64 -i caminho/para/o-arquivo.json | tr -d '\n'
+   ```
+   (no Windows, use um site confiável de conversão base64 ou o PowerShell:
+   `[Convert]::ToBase64String([IO.File]::ReadAllBytes("arquivo.json"))`)
+4. Copie o resultado — é uma string longa, sem quebras de linha
+
+### 3. Configurar as variáveis de ambiente
+
+No Railway/Vercel (aba **Environment Variables** do projeto do site), adicione:
+
+```
+MP_ACCESS_TOKEN=APP_USR-...
+FIREBASE_SERVICE_ACCOUNT_KEY=<a string base64 do passo 2>
+```
+
+**Importante**: essas duas variáveis NÃO devem ter o prefixo `NEXT_PUBLIC_` — são segredos
+que só o servidor pode ver. Nunca as exponha no código do navegador.
+
+### 4. Configurar o webhook no Mercado Pago
+
+1. No painel do Mercado Pago, vá em **Sua aplicação > Webhooks**
+2. Adicione a URL: `https://SEU-DOMINIO.vercel.app/api/inscricao/webhook`
+3. Selecione o evento **Pagamentos**
+
+### 5. Definir o valor de um torneio
+
+No admin, ao criar/editar um torneio, preencha **"Valor da inscrição (R$)"**. Deixe em
+branco para manter a inscrição gratuita (funciona exatamente como antes).
+
+### Como funciona por trás
+
+1. O time preenche o formulário de inscrição normalmente
+2. Se o torneio tiver valor, o site chama uma API interna (`/api/inscricao/pix`) que:
+   - Confirma o valor real do torneio direto no banco (nunca confia no que vem do navegador)
+   - Cria a inscrição no Firestore com status `aguardando_pagamento`
+   - Gera a cobrança PIX no Mercado Pago e devolve o QR code pro time escanear
+3. O time paga, o Mercado Pago avisa o site via webhook (`/api/inscricao/webhook`)
+4. O webhook confirma o pagamento e muda o status da inscrição pra `pendente` — só a
+   partir daí ela aparece na lista de "Pendentes" no admin, pronta pra você aprovar
+5. Enquanto isso, o site do time fica checando a cada poucos segundos se o pagamento
+   já foi confirmado, e mostra a tela de sucesso automaticamente
