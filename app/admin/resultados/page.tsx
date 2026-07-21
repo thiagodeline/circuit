@@ -13,7 +13,7 @@ import {
 } from '@/lib/data';
 import { Torneio, Time, Partida } from '@/types';
 
-const vazio = { fase: '', timeA: '', timeB: '', placarA: '', placarB: '', finalizada: false };
+const vazio = { fase: '', timeA: '', timeB: '', finalizada: false };
 
 export default function AdminResultadosPage() {
   const [torneios, setTorneios] = useState<Torneio[]>([]);
@@ -47,25 +47,28 @@ export default function AdminResultadosPage() {
 
   async function criar(e: React.FormEvent) {
     e.preventDefault();
-    if (!form.timeA || !form.timeB) return alert('Selecione os dois times.');
+    if (!form.fase) return alert('Preencha a fase.');
     setSalvando(true);
     try {
-      const dados: any = {
+      // timeA/timeB podem ficar em branco — significa "a definir" (útil pra criar
+      // os slots dos playoffs antes de saber quem se classificou)
+      await criarPartida({
         torneioId,
         fase: form.fase,
         timeA: form.timeA,
         timeB: form.timeB,
-        finalizada: form.finalizada,
-      };
-      if (form.placarA !== '') dados.placarA = Number(form.placarA);
-      if (form.placarB !== '') dados.placarB = Number(form.placarB);
-
-      await criarPartida(dados);
+        finalizada: false,
+      });
       setForm(vazio);
       await carregar(torneioId);
     } finally {
       setSalvando(false);
     }
+  }
+
+  async function atualizarTimeDaPartida(p: Partida, campo: 'timeA' | 'timeB', valor: string) {
+    await atualizarPartida(p.id, { [campo]: valor });
+    await carregar(torneioId);
   }
 
   async function atualizarPlacar(p: Partida, placarA: number, placarB: number, finalizada: boolean) {
@@ -78,8 +81,6 @@ export default function AdminResultadosPage() {
     await excluirPartida(id);
     await carregar(torneioId);
   }
-
-  const nomeTime = (id: string) => times.find((t) => t.id === id)?.nome ?? '—';
 
   return (
     <RequireAuth>
@@ -108,7 +109,14 @@ export default function AdminResultadosPage() {
                     <button onClick={() => excluir(p.id)} className="text-xs text-alert hover:underline">Excluir</button>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="flex-1 truncate">{nomeTime(p.timeA)}</span>
+                    <select
+                      className="input flex-1"
+                      value={p.timeA}
+                      onChange={(e) => atualizarTimeDaPartida(p, 'timeA', e.target.value)}
+                    >
+                      <option value="">A definir</option>
+                      {times.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
+                    </select>
                     <input
                       type="number"
                       defaultValue={p.placarA ?? ''}
@@ -126,7 +134,14 @@ export default function AdminResultadosPage() {
                         atualizarPlacar(p, p.placarA ?? 0, Number(e.target.value), true)
                       }
                     />
-                    <span className="flex-1 truncate text-right">{nomeTime(p.timeB)}</span>
+                    <select
+                      className="input flex-1"
+                      value={p.timeB}
+                      onChange={(e) => atualizarTimeDaPartida(p, 'timeB', e.target.value)}
+                    >
+                      <option value="">A definir</option>
+                      {times.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
+                    </select>
                   </div>
                 </div>
               ))}
@@ -136,26 +151,30 @@ export default function AdminResultadosPage() {
               <h2 className="font-display font-semibold">Nova partida</h2>
               <div>
                 <label className="label">Fase</label>
-                <input required className="input" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })} placeholder="Grupo A / Semifinal / Final" />
+                <input required className="input" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })} placeholder="Grupo A / Quartas de Final / Semifinal / Final" />
               </div>
               <div>
                 <label className="label">Time A</label>
-                <select required className="input" value={form.timeA} onChange={(e) => setForm({ ...form, timeA: e.target.value })}>
-                  <option value="">Selecione</option>
+                <select className="input" value={form.timeA} onChange={(e) => setForm({ ...form, timeA: e.target.value })}>
+                  <option value="">A definir</option>
                   {times.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
                 </select>
               </div>
               <div>
                 <label className="label">Time B</label>
-                <select required className="input" value={form.timeB} onChange={(e) => setForm({ ...form, timeB: e.target.value })}>
-                  <option value="">Selecione</option>
+                <select className="input" value={form.timeB} onChange={(e) => setForm({ ...form, timeB: e.target.value })}>
+                  <option value="">A definir</option>
                   {times.map((t) => <option key={t.id} value={t.id}>{t.nome}</option>)}
                 </select>
               </div>
               <button type="submit" disabled={salvando} className="btn-primary w-full disabled:opacity-60">
                 {salvando ? 'Criando…' : 'Criar partida'}
               </button>
-              <p className="text-xs text-muted">Depois de criar, edite o placar direto na lista ao lado (o resultado salva ao sair do campo).</p>
+              <p className="text-xs text-muted">
+                Para os playoffs: crie a partida deixando os times como "A definir" — depois, quando
+                souber quem se classificou, volte aqui e escolha os times na lista ao lado. O placar
+                também salva direto na lista ao sair do campo.
+              </p>
             </form>
           </div>
         </main>

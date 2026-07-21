@@ -5,7 +5,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { buscarTimePorId, listarPartidasPorTorneio } from '@/lib/data';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
-import { Torneio } from '@/types';
+import { Torneio, Time } from '@/types';
 
 export const revalidate = 30;
 
@@ -17,15 +17,30 @@ export default async function PerfilTimePage({ params }: { params: { id: string 
   const torneio = torneioSnap && torneioSnap.exists() ? ({ id: torneioSnap.id, ...torneioSnap.data() } as Torneio) : null;
 
   const partidas = torneio ? await listarPartidasPorTorneio(torneio.id).catch(() => []) : [];
-  const partidasDoTime = partidas.filter((p) => p.timeA === time.id || p.timeB === time.id);
 
-  const vitorias = partidasDoTime.filter((p) => {
-    if (!p.finalizada) return false;
+  const partidasDoTime = partidas.filter((p) => p.timeA === time.id || p.timeB === time.id);
+  const resultadosFinalizados = partidasDoTime
+    .filter((p) => p.finalizada)
+    .sort((a, b) => b.criadoEm - a.criadoEm);
+
+  const vitorias = resultadosFinalizados.filter((p) => {
     const meuPlacar = p.timeA === time.id ? p.placarA : p.placarB;
     const placarAdversario = p.timeA === time.id ? p.placarB : p.placarA;
     return (meuPlacar ?? 0) > (placarAdversario ?? 0);
   }).length;
-  const derrotas = partidasDoTime.filter((p) => p.finalizada).length - vitorias;
+  const derrotas = resultadosFinalizados.length - vitorias;
+
+  // Busca os times adversários dos resultados recentes para exibir o nome
+  const idsAdversarios = Array.from(
+    new Set(resultadosFinalizados.map((p) => (p.timeA === time.id ? p.timeB : p.timeA)))
+  );
+  const adversarios = new Map<string, Time>();
+  await Promise.all(
+    idsAdversarios.map(async (id) => {
+      const snap = await getDoc(doc(db, 'times', id)).catch(() => null);
+      if (snap && snap.exists()) adversarios.set(id, { id: snap.id, ...snap.data() } as Time);
+    })
+  );
 
   return (
     <>
@@ -33,15 +48,15 @@ export default async function PerfilTimePage({ params }: { params: { id: string 
       <main className="mx-auto max-w-4xl px-6 py-16">
         <div className="flex items-center gap-5">
           {time.logo ? (
-            <img src={time.logo} alt={time.nome} className="h-20 w-20 rounded-xl object-cover" />
+            <img src={time.logo} alt={time.nome} className="h-20 w-20 object-cover" />
           ) : (
-            <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-surface2 font-mono text-lg text-muted">
+            <div className="flex h-20 w-20 items-center justify-center bg-surface2 font-mono text-lg text-muted">
               {time.tag.slice(0, 3)}
             </div>
           )}
           <div>
             <p className="font-mono text-sm text-signal">{time.tag}</p>
-            <h1 className="font-display text-3xl font-semibold">{time.nome}</h1>
+            <h1 className="font-display text-3xl font-semibold uppercase tracking-tight">{time.nome}</h1>
             {torneio && (
               <Link href={`/torneios/${torneio.slug}`} className="text-sm text-muted hover:text-signal">
                 {torneio.nome} {time.grupo && `· ${time.grupo}`}
@@ -53,61 +68,50 @@ export default async function PerfilTimePage({ params }: { params: { id: string 
         {time.bio && <p className="mt-6 max-w-2xl text-muted">{time.bio}</p>}
 
         {/* STATS */}
-        <div className="mt-8 grid grid-cols-3 gap-4 sm:max-w-md">
+        <div className="mt-8 grid grid-cols-2 gap-4 sm:max-w-xs">
           <div className="card p-4 text-center">
             <p className="font-display text-2xl font-semibold text-live">{vitorias}</p>
-            <p className="text-xs text-muted">Vitórias</p>
+            <p className="font-mono text-xs uppercase tracking-wider text-muted">Vitórias</p>
           </div>
           <div className="card p-4 text-center">
             <p className="font-display text-2xl font-semibold text-alert">{derrotas}</p>
-            <p className="text-xs text-muted">Derrotas</p>
-          </div>
-          <div className="card p-4 text-center">
-            <p className="font-display text-2xl font-semibold">{time.jogadores.length}</p>
-            <p className="text-xs text-muted">Jogadores</p>
+            <p className="font-mono text-xs uppercase tracking-wider text-muted">Derrotas</p>
           </div>
         </div>
 
-        {/* ELENCO */}
+        {/* ÚLTIMOS RESULTADOS */}
         <section className="mt-14">
-          <h2 className="mb-5 font-display text-xl font-semibold">Elenco</h2>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="card flex items-center justify-between p-4">
-              <span className="font-medium">{time.capitao}</span>
-              <span className="font-mono text-xs text-signal">Capitão</span>
-            </div>
-            {time.jogadores
-              .filter((j) => j !== time.capitao)
-              .map((j) => (
-                <div key={j} className="card p-4">
-                  <span className="font-medium">{j}</span>
-                </div>
-              ))}
-          </div>
-        </section>
-
-        {/* HISTÓRICO DE PARTIDAS */}
-        {partidasDoTime.length > 0 && (
-          <section className="mt-14">
-            <h2 className="mb-5 font-display text-xl font-semibold">Partidas</h2>
+          <h2 className="mb-5 font-display text-xl font-semibold uppercase tracking-wide">Últimos resultados</h2>
+          {resultadosFinalizados.length === 0 ? (
+            <p className="text-muted">Nenhum resultado registrado ainda.</p>
+          ) : (
             <div className="space-y-2">
-              {partidasDoTime.map((p) => {
+              {resultadosFinalizados.map((p) => {
                 const souA = p.timeA === time.id;
                 const meuPlacar = souA ? p.placarA : p.placarB;
                 const placarAdversario = souA ? p.placarB : p.placarA;
-                const venceu = p.finalizada && (meuPlacar ?? 0) > (placarAdversario ?? 0);
+                const venceu = (meuPlacar ?? 0) > (placarAdversario ?? 0);
+                const adversarioId = souA ? p.timeB : p.timeA;
+                const adversario = adversarios.get(adversarioId);
+
                 return (
                   <div key={p.id} className="card flex items-center justify-between p-4">
-                    <span className="font-mono text-xs text-muted">{p.fase}</span>
-                    <span className={`font-mono ${p.finalizada ? (venceu ? 'text-live' : 'text-alert') : 'text-muted'}`}>
-                      {p.finalizada ? `${meuPlacar} : ${placarAdversario}` : 'a definir'}
+                    <div className="flex items-center gap-3">
+                      <span className={`w-1 self-stretch ${venceu ? 'bg-live' : 'bg-alert'}`} />
+                      <div>
+                        <p className="font-mono text-xs uppercase tracking-wider text-muted">{p.fase}</p>
+                        <p className="font-medium">vs {adversario?.nome ?? 'Time removido'}</p>
+                      </div>
+                    </div>
+                    <span className={`font-mono text-lg font-semibold ${venceu ? 'text-live' : 'text-alert'}`}>
+                      {meuPlacar} : {placarAdversario}
                     </span>
                   </div>
                 );
               })}
             </div>
-          </section>
-        )}
+          )}
+        </section>
       </main>
       <SiteFooter />
     </>

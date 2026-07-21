@@ -39,6 +39,12 @@ export async function SiteHeader() {
           Circuit
         </Link>
         <nav className="hidden items-center gap-8 md:flex">
+          <a
+            href="https://circuitgg.vercel.app/"
+            className="font-mono text-xs font-semibold uppercase tracking-wider text-muted transition hover:text-ink"
+          >
+            Início
+          </a>
           {links.map((l) => (
             <Link
               key={l.href}

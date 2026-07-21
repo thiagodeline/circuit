@@ -4,6 +4,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
 import { MatchRow } from '@/components/MatchRow';
+import { Bracket } from '@/components/Bracket';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
 import { calcularClassificacao } from '@/lib/classificacao';
 
@@ -31,7 +32,7 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
   // Ordem de navegação lateral: grupos primeiro, depois fases de playoff, depois times
   const itensNav = [
     ...fasesDeGrupo.map((f) => ({ id: `fase-${f}`, label: f })),
-    ...fasesMataMata.map((f) => ({ id: `fase-${f}`, label: f })),
+    ...(fasesMataMata.length > 0 ? [{ id: 'playoffs', label: 'Playoffs' }] : []),
     { id: 'times', label: 'Times' },
   ];
 
@@ -125,16 +126,12 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
                 </section>
               ))}
 
-              {fasesMataMata.map((fase) => (
-                <section key={fase} id={`fase-${fase}`} className="scroll-mt-24">
-                  <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">{fase}</h2>
-                  <div className="space-y-2">
-                    {partidas.filter((p) => p.fase === fase).map((p) => (
-                      <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
-                    ))}
-                  </div>
+              {fasesMataMata.length > 0 && (
+                <section id="playoffs" className="scroll-mt-24">
+                  <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">Playoffs</h2>
+                  <Bracket fases={fasesMataMata} partidas={partidas} timesPorId={timesPorId} />
                 </section>
-              ))}
+              )}
 
               {/* TIMES */}
               <section id="times" className="scroll-mt-24">
