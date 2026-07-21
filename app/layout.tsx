@@ -8,7 +8,7 @@ const display = Oswald({
   weight: ['500', '600', '700'],
 });
 const body = Inter({ subsets: ['latin'], variable: '--font-body' });
-const mono = IBM_Plex_Mono({ subsets: ['latin'], variable: '--font-mono', weight: ['400', '500'] });
+const mono = IBM_Plex_Mono({ subsets: ['latin'], variable: '--font-mono', weight: ['400', '500', '600'] });
 
 export const metadata: Metadata = {
   title: 'Circuit — Organização de torneios de Valorant',

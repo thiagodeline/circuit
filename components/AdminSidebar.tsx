@@ -11,6 +11,7 @@ const itens = [
   { href: '/admin/inscricoes', label: 'Inscrições' },
   { href: '/admin/times', label: 'Times' },
   { href: '/admin/resultados', label: 'Resultados' },
+  { href: '/admin/ranking', label: 'Ranking' },
   { href: '/admin/noticias', label: 'Notícias' },
 ];
 

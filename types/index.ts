@@ -67,3 +67,11 @@ export interface Inscricao {
   status: StatusInscricao;
   criadoEm: number;
 }
+
+export interface RankingEntrada {
+  id: string;
+  timeId: string;
+  posicao: number;
+  comentario?: string;
+  atualizadoEm: number;
+}

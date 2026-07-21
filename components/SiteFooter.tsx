@@ -19,8 +19,8 @@ export function SiteFooter() {
           <div>
             <p className="eyebrow mb-4">Navegação</p>
             <ul className="space-y-2 text-sm text-muted">
-              <li><Link href="/torneios" className="transition hover:text-ink">Torneios</Link></li>
-              <li><Link href="/times" className="transition hover:text-ink">Times</Link></li>
+              <li><Link href="/" className="transition hover:text-ink">Torneios</Link></li>
+              <li><Link href="/ranking" className="transition hover:text-ink">Ranking</Link></li>
               <li><Link href="/noticias" className="transition hover:text-ink">Notícias</Link></li>
             </ul>
           </div>

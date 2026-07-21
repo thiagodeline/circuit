@@ -1,115 +1,115 @@
 import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { listarTorneios } from '@/lib/data';
 import { StatusBadge } from '@/components/StatusBadge';
+import { listarTorneios } from '@/lib/data';
+import { Torneio } from '@/types';
 
 export const revalidate = 60;
 
+function TorneioCard({ t, destaque = false }: { t: Torneio; destaque?: boolean }) {
+  return (
+    <Link
+      href={`/torneios/${t.slug}`}
+      className={`card group overflow-hidden transition hover:border-signal/50 ${destaque ? 'md:col-span-2' : ''}`}
+    >
+      <div className={`w-full bg-surface2 ${destaque ? 'aspect-[21/8]' : 'aspect-[21/9]'}`}>
+        {t.capa && <img src={t.capa} alt={t.nome} className="h-full w-full object-cover" />}
+      </div>
+      <div className="p-6">
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <StatusBadge status={t.status} />
+          <span className="border border-line px-2.5 py-1 font-mono text-xs text-muted">
+            Grupos + Playoffs
+          </span>
+        </div>
+        <h3 className={`font-display font-semibold uppercase tracking-wide group-hover:text-signal ${destaque ? 'text-2xl' : 'text-xl'}`}>
+          {t.nome}
+        </h3>
+        <p className="mt-2 line-clamp-2 text-sm text-muted">{t.descricao}</p>
+        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 font-mono text-xs text-muted">
+          {t.dataInicio && <span>{new Date(t.dataInicio).toLocaleDateString('pt-BR')}</span>}
+          {t.local && <span>{t.local}</span>}
+          {t.premiacao && <span className="text-signal">{t.premiacao}</span>}
+        </div>
+      </div>
+    </Link>
+  );
+}
+
 export default async function HomePage() {
-  let torneios: Awaited<ReturnType<typeof listarTorneios>> = [];
+  let torneios: Torneio[] = [];
   try {
     torneios = await listarTorneios();
-  } catch {
-    // Firebase ainda não configurado — a home segue funcionando sem dados
-  }
+  } catch {}
 
-  const torneiosAtivos = torneios.filter((t) => t.status === 'em_andamento').length;
+  const emAndamento = torneios.filter((t) => t.status === 'em_andamento');
+  const inscricoesAbertas = torneios.filter((t) => t.status === 'inscricoes_abertas');
+  const emBreve = torneios.filter((t) => t.status === 'em_breve');
+  const finalizados = torneios.filter((t) => t.status === 'finalizado');
+
+  const destaque = emAndamento[0] || inscricoesAbertas[0];
+  const resto = torneios.filter((t) => t.id !== destaque?.id);
 
   return (
     <>
       <SiteHeader />
       <main>
-        {/* HERO */}
-        <section className="relative overflow-hidden border-b border-line bg-circuit-trace bg-[length:120px_120px]">
-          <div className="mx-auto max-w-6xl px-6 pb-12 pt-20">
-            <p className="eyebrow mb-5">Organização de torneios de Valorant</p>
-            <h1 className="max-w-4xl font-display text-6xl font-semibold leading-[0.95] tracking-tight md:text-7xl">
-              Cada campeonato
-              <br />
-              é um <span className="text-signal">circuito.</span>
-            </h1>
-            <p className="mt-6 max-w-lg text-base text-muted">
-              A Circuit organiza campeonatos competitivos de Valorant — do Circuit Zen às próximas
-              temporadas — com chaves, resultados e times em um só lugar.
-            </p>
-            <div className="mt-8 flex gap-4">
-              <Link href="/torneios" className="btn-primary">
-                Ver torneios ativos
-              </Link>
-              <Link href="/noticias" className="btn-secondary">
-                Últimas notícias
-              </Link>
-            </div>
-          </div>
-
-          {/* FAIXA DE ESTATÍSTICAS */}
-          <div className="border-t border-line bg-surface/60">
-            <div className="mx-auto grid max-w-6xl grid-cols-3 divide-x divide-line px-6">
-              <div className="px-6 py-6">
-                <p className="font-display text-3xl font-semibold">{torneios.length}</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Torneios cadastrados</p>
+        {/* BARRA DE TÍTULO COMPACTA — sem hero grande */}
+        <section className="border-b border-line bg-circuit-trace bg-[length:120px_120px]">
+          <div className="mx-auto max-w-6xl px-6 py-10">
+            <div className="flex flex-wrap items-end justify-between gap-6">
+              <div>
+                <p className="eyebrow mb-2">Circuit</p>
+                <h1 className="font-display text-3xl font-semibold uppercase tracking-tight sm:text-4xl">Torneios</h1>
               </div>
-              <div className="px-6 py-6">
-                <p className="font-display text-3xl font-semibold text-live">{torneiosAtivos}</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Em andamento agora</p>
-              </div>
-              <div className="px-6 py-6">
-                <p className="font-display text-3xl font-semibold text-signal">Circuit Zen</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Temporada de estreia</p>
+              <div className="flex gap-8">
+                <div>
+                  <p className="font-display text-2xl font-semibold text-live">{emAndamento.length}</p>
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Em andamento</p>
+                </div>
+                <div>
+                  <p className="font-display text-2xl font-semibold text-signal">{inscricoesAbertas.length}</p>
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Inscrições abertas</p>
+                </div>
+                <div>
+                  <p className="font-display text-2xl font-semibold">{emBreve.length}</p>
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Em breve</p>
+                </div>
+                <div>
+                  <p className="font-display text-2xl font-semibold text-muted">{finalizados.length}</p>
+                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Finalizados</p>
+                </div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* TORNEIOS EM DESTAQUE */}
-        <section className="mx-auto max-w-6xl px-6 py-20">
-          <div className="mb-10 flex items-end justify-between border-b border-line pb-6">
-            <div className="flex items-baseline gap-4">
-              <span className="font-mono text-sm text-muted">01</span>
-              <div>
-                <p className="eyebrow mb-2">Temporada atual</p>
-                <h2 className="font-display text-3xl font-semibold uppercase">Torneios</h2>
-              </div>
-            </div>
-            <Link href="/torneios" className="font-mono text-xs uppercase tracking-wider text-signal hover:underline">
-              Ver todos →
-            </Link>
-          </div>
+        <div className="mx-auto max-w-6xl px-6 py-14">
+          {torneios.length === 0 && (
+            <div className="card p-10 text-center text-muted">Nenhum torneio publicado ainda.</div>
+          )}
 
-          {torneios.length === 0 ? (
-            <div className="card p-10 text-center text-muted">
-              Nenhum torneio publicado ainda. Assim que o Firebase estiver configurado e o primeiro
-              torneio for cadastrado no painel admin, ele aparece aqui.
-            </div>
-          ) : (
-            <div className="grid gap-6 md:grid-cols-2">
-              {torneios.slice(0, 4).map((t) => (
-                <Link
-                  key={t.id}
-                  href={`/torneios/${t.slug}`}
-                  className="card group overflow-hidden transition hover:border-signal/50"
-                >
-                  {t.capa && (
-                    <div className="aspect-[21/9] w-full bg-surface2">
-                      <img src={t.capa} alt={t.nome} className="h-full w-full object-cover" />
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <div className="mb-4 flex items-center justify-between">
-                      <StatusBadge status={t.status} />
-                      <span className="font-mono text-xs text-muted">{t.formato}</span>
-                    </div>
-                    <h3 className="font-display text-xl font-semibold group-hover:text-signal">
-                      {t.nome}
-                    </h3>
-                    <p className="mt-2 line-clamp-2 text-sm text-muted">{t.descricao}</p>
-                  </div>
-                </Link>
-              ))}
+          {destaque && (
+            <div className="mb-6">
+              <p className="eyebrow mb-4">Destaque</p>
+              <div className="grid gap-6 md:grid-cols-2">
+                <TorneioCard t={destaque} destaque />
+              </div>
             </div>
           )}
-        </section>
+
+          {resto.length > 0 && (
+            <div>
+              {destaque && <p className="eyebrow mb-4">Outros torneios</p>}
+              <div className="grid gap-6 md:grid-cols-2">
+                {resto.map((t) => (
+                  <TorneioCard key={t.id} t={t} />
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
       </main>
       <SiteFooter />
     </>

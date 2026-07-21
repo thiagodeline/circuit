@@ -11,7 +11,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Torneio, Time, Partida, Noticia, Inscricao } from '@/types';
+import { Torneio, Time, Partida, Noticia, Inscricao, RankingEntrada } from '@/types';
 
 // --- Torneios ---
 
@@ -126,4 +126,28 @@ export async function atualizarInscricao(id: string, dados: Partial<Inscricao>) 
 
 export async function excluirInscricao(id: string) {
   return deleteDoc(doc(db, 'inscricoes', id));
+}
+
+// --- Ranking geral de times (curado pela staff, estilo Power Rankings) ---
+
+export async function listarTodosOsTimes(): Promise<Time[]> {
+  const snap = await getDocs(collection(db, 'times'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Time);
+}
+
+export async function listarRanking(): Promise<RankingEntrada[]> {
+  const snap = await getDocs(query(collection(db, 'ranking'), orderBy('posicao', 'asc')));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as RankingEntrada);
+}
+
+export async function criarEntradaRanking(dados: Omit<RankingEntrada, 'id' | 'atualizadoEm'>) {
+  return addDoc(collection(db, 'ranking'), { ...dados, atualizadoEm: Date.now() });
+}
+
+export async function atualizarEntradaRanking(id: string, dados: Partial<RankingEntrada>) {
+  return updateDoc(doc(db, 'ranking', id), dados);
+}
+
+export async function excluirEntradaRanking(id: string) {
+  return deleteDoc(doc(db, 'ranking', id));
 }
