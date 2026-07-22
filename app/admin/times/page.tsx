@@ -108,7 +108,7 @@ export default function AdminTimesPage() {
                 <div key={t.id} className="card flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                     {t.logo ? (
-                      <img src={t.logo} alt={t.nome} className="h-9 w-9 rounded-md object-cover" />
+                      <img src={t.logo} alt={t.nome} loading="lazy" decoding="async" className="h-9 w-9 rounded-md object-cover" />
                     ) : (
                       <div className="flex h-9 w-9 items-center justify-center rounded-md bg-surface2 font-mono text-xs text-muted">
                         {t.tag.slice(0, 3)}

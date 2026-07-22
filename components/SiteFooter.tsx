@@ -19,9 +19,9 @@ export function SiteFooter() {
           <div>
             <p className="eyebrow mb-4">Navegação</p>
             <ul className="space-y-2 text-sm text-muted">
-              <li><Link href="/" className="transition hover:text-ink">Torneios</Link></li>
-              <li><Link href="/ranking" className="transition hover:text-ink">Ranking</Link></li>
-              <li><Link href="/noticias" className="transition hover:text-ink">Notícias</Link></li>
+              <li><Link href="/" className="transition-colors hover:text-ink">Torneios</Link></li>
+              <li><Link href="/ranking" className="transition-colors hover:text-ink">Ranking</Link></li>
+              <li><Link href="/noticias" className="transition-colors hover:text-ink">Notícias</Link></li>
             </ul>
           </div>
 
@@ -33,7 +33,7 @@ export function SiteFooter() {
                   href="https://discord.com/invite/PASRYsBsAG"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition hover:text-ink"
+                  className="transition-colors hover:text-ink"
                 >
                   Discord oficial
                 </a>

@@ -27,7 +27,7 @@ function SlotTime({ time }: { time?: Time }) {
   return (
     <Link href={`/times/${time.id}`} className="flex items-center gap-2 px-3 py-2.5 hover:text-signal">
       {time.logo ? (
-        <img src={time.logo} alt="" className="h-5 w-5 flex-shrink-0 rounded-full object-cover" />
+        <img src={time.logo} alt="" loading="lazy" decoding="async" className="h-5 w-5 flex-shrink-0 rounded-full object-cover" />
       ) : (
         <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[9px] text-muted">
           {time.tag.slice(0, 2)}

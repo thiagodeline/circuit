@@ -23,7 +23,7 @@ export async function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-white/10 bg-base/80 backdrop-blur-xl">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-base/90 backdrop-blur-md">
       {ticker && (
         <Link
           href={ticker.href}

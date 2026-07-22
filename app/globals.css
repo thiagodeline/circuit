@@ -51,14 +51,18 @@
     @apply h-px w-5 bg-signal;
   }
 
-  /* Card — vidro fosco escuro, cantos bem arredondados, borda sutil translúcida */
+  /* Card — vidro fosco escuro, cantos bem arredondados, borda sutil translúcida.
+     Sombra removida a favor de borda um pouco mais visível: box-shadow grande é
+     caro pro compositor em telas fracas, borda fina tem o mesmo efeito visual
+     de "flutuação" no dark mode por quase nenhum custo. */
   .card {
-    @apply relative rounded-2xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/20 backdrop-blur-md;
+    @apply relative rounded-2xl border border-white/[0.12] bg-white/[0.04] backdrop-blur-md;
   }
 
-  /* Botão primário — pílula com degradê neon laranja e glow */
+  /* Botão primário — pílula com degradê neon laranja; glow leve só na borda,
+     sem shadow-lg (blur de sombra grande é caro; borda com brilho é mais barata) */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-full bg-gradient-to-r from-signal to-orange-600 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-white shadow-lg shadow-signal/25 transition hover:shadow-signal/40 hover:brightness-110;
+    @apply inline-flex items-center justify-center rounded-full border border-signal/50 bg-gradient-to-r from-signal to-orange-600 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:border-signal hover:brightness-110;
   }
 
   /* Botão secundário — vidro translúcido com borda fina */
@@ -76,5 +80,11 @@
   /* Pílula pequena — usada em badges de fase/horário/status */
   .pill {
     @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs backdrop-blur-sm;
+  }
+
+  /* Skeleton/shimmer — usado nas telas loading.tsx enquanto os dados carregam.
+     animate-pulse (opacidade) é bem mais barato que qualquer efeito com blur. */
+  .skeleton {
+    @apply animate-pulse rounded-xl bg-white/5;
   }
 }

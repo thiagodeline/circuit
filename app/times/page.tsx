@@ -26,9 +26,9 @@ export default async function TimesPage() {
                 <h2 className="mb-5 font-display text-xl font-semibold text-signal">{torneio.nome}</h2>
                 <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
                   {times.map((t) => (
-                    <Link key={t.id} href={`/times/${t.id}`} className="card group flex items-center gap-3 p-4 transition hover:border-signal/50">
+                    <Link key={t.id} href={`/times/${t.id}`} className="card group flex items-center gap-3 p-4 transition hover:border-signal/50 hover:-translate-y-0.5 transition-transform duration-200 ease-in-out will-change-transform">
                       {t.logo ? (
-                        <img src={t.logo} alt={t.nome} className="h-10 w-10 flex-shrink-0 rounded-md object-cover" />
+                        <img src={t.logo} alt={t.nome} loading="lazy" decoding="async" className="h-10 w-10 flex-shrink-0 rounded-md object-cover" />
                       ) : (
                         <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-md bg-surface2 font-mono text-xs text-muted">
                           {t.tag.slice(0, 3)}

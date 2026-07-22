@@ -11,7 +11,7 @@ function TorneioCard({ t, destaque = false }: { t: Torneio; destaque?: boolean }
   return (
     <Link
       href={`/torneios/${t.slug}`}
-      className={`card group overflow-hidden transition hover:border-signal/50 ${destaque ? 'md:col-span-2' : ''}`}
+      className={`card group overflow-hidden transition-transform duration-200 ease-in-out will-change-transform hover:-translate-y-0.5 hover:border-signal/50 ${destaque ? 'md:col-span-2' : ''}`}
     >
       <div className={`w-full bg-surface2 ${destaque ? 'aspect-[21/8]' : 'aspect-[21/9]'}`}>
         {t.capa && <img src={t.capa} alt={t.nome} className="h-full w-full object-cover" />}

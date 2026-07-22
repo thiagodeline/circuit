@@ -21,11 +21,11 @@ export default async function NoticiasPage() {
             <Link
               key={n.id}
               href={`/noticias/${n.slug}`}
-              className="card group overflow-hidden transition hover:border-signal/50"
+              className="card group overflow-hidden transition hover:border-signal/50 hover:-translate-y-0.5 transition-transform duration-200 ease-in-out will-change-transform"
             >
               <div className="aspect-[16/10] w-full bg-surface2">
                 {n.capa && (
-                  <img src={n.capa} alt={n.titulo} className="h-full w-full object-cover" />
+                  <img src={n.capa} alt={n.titulo} loading="lazy" decoding="async" className="h-full w-full object-cover" />
                 )}
               </div>
               <div className="p-5">

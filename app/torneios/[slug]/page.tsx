@@ -5,6 +5,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
 import { MatchRow } from '@/components/MatchRow';
 import { Bracket } from '@/components/Bracket';
+import { TorneioTabsClient } from '@/components/TorneioTabsClient';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
 import { calcularClassificacao } from '@/lib/classificacao';
 import { ordenarPartidasPorData } from '@/lib/ordenar';
@@ -19,7 +20,7 @@ function ehFaseDeGrupo(fase: string) {
 // para ordenar todas as partidas da Rodada 1 antes das da Rodada 2, e assim por diante.
 function extrairNumeroRodada(fase: string): number {
   const match = fase.match(/rodada\s*(\d+)/i);
-  return match ? Number(match[1]) : Number.POSITIVE_INFINITY; // sem rodada identificada vai para o final
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
 }
 
 function ordenarFasesPorRodada(fasesLista: string[]): string[] {
@@ -67,11 +68,183 @@ export default async function TorneioDetalhePage({
   const fasesMataMata = ehApenasMataMata ? fases : fases.filter((f) => !ehFaseDeGrupo(f));
 
   const tabsDisponiveis = ehApenasMataMata ? TABS_APENAS_MATA_MATA : TABS_GRUPOS_MATA_MATA;
-  const tabAtiva = tabsDisponiveis.some((t) => t.key === searchParams.tab)
-    ? searchParams.tab!
-    : 'visao-geral';
+  const tabInicial = tabsDisponiveis.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
 
   const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
+
+  // --- Cada painel é montado uma única vez aqui no servidor e passado como
+  // conteúdo pronto para o componente client, que só alterna a visibilidade via
+  // CSS — nenhuma dessas árvores é desmontada/refeita ao trocar de aba.
+
+  const painelVisaoGeral = (
+    <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-8">
+        <div>
+          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
+          <p className="whitespace-pre-line text-muted">{torneio.descricao}</p>
+        </div>
+        {torneio.regras && (
+          <div>
+            <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Regulamento rápido</h2>
+            <p className="whitespace-pre-line text-muted">{torneio.regras}</p>
+          </div>
+        )}
+      </div>
+      <div>
+        <p className="eyebrow mb-4">Últimos resultados</p>
+        {partidasFinalizadas.length === 0 ? (
+          <p className="text-sm text-muted">Nenhum resultado registrado ainda.</p>
+        ) : (
+          <div className="space-y-2">
+            {partidasFinalizadas.map((p) => (
+              <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
+  const painelGrupos = ehApenasMataMata ? null : (
+    <div className="space-y-12">
+      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+        {gruposDeTimes.length === 0 && <p className="text-muted">Sem grupos definidos ainda.</p>}
+        {gruposDeTimes.map((grupo) => {
+          const timesDoGrupo = times.filter((t) => t.grupo === grupo);
+          const partidasDoGrupo = partidas.filter(
+            (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
+          );
+          const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
+
+          return (
+            <div key={grupo} className="card overflow-hidden">
+              <div className="border-b border-white/10 bg-white/[0.03] px-4 py-3">
+                <p className="font-mono text-xs font-semibold uppercase tracking-wider">{grupo}</p>
+              </div>
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-xs text-muted">
+                    <th className="px-3 py-2 font-normal">Time</th>
+                    <th className="px-1 py-2 text-center font-normal">V</th>
+                    <th className="px-1 py-2 text-center font-normal">D</th>
+                    <th className="px-1 py-2 text-center font-normal">MV</th>
+                    <th className="px-1 py-2 text-center font-normal">MD</th>
+                    <th className="px-1 py-2 text-center font-normal">Saldo</th>
+                    <th className="px-2 py-2 text-center font-normal">P</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classificacao.map((linha, i) => (
+                    <tr
+                      key={linha.time.id}
+                      className={`transition-colors hover:bg-white/5 ${i < 2 ? 'bg-signal/10' : ''}`}
+                    >
+                      <td className="max-w-[120px] truncate px-3 py-2 font-medium">
+                        <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
+                          {linha.time.logo ? (
+                            <img
+                              src={linha.time.logo}
+                              alt=""
+                              loading="lazy"
+                              decoding="async"
+                              className="h-5 w-5 flex-shrink-0 rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[9px] text-muted">
+                              {linha.time.tag.slice(0, 2)}
+                            </div>
+                          )}
+                          <span className="truncate">{linha.time.tag}</span>
+                        </Link>
+                      </td>
+                      <td className="px-1 py-2 text-center font-mono text-live">{linha.vitorias}</td>
+                      <td className="px-1 py-2 text-center font-mono text-alert">{linha.derrotas}</td>
+                      <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasVencidos}</td>
+                      <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasPerdidos}</td>
+                      <td className="px-1 py-2 text-center font-mono text-muted">
+                        {linha.saldo > 0 ? `+${linha.saldo}` : linha.saldo}
+                      </td>
+                      <td className="px-2 py-2 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        })}
+      </div>
+
+      {fasesDeGrupo.length > 0 && (
+        <div className="space-y-8">
+          <h2 className="font-display text-xl font-semibold uppercase tracking-wide">Partidas da fase de grupos</h2>
+          {fasesDeGrupo.map((fase) => (
+            <div key={fase}>
+              <p className="eyebrow mb-3">{fase}</p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                {ordenarPartidasPorData(partidas.filter((p) => p.fase === fase)).map((p) => (
+                  <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const painelChaveamento = (
+    <div>
+      {fasesMataMata.length === 0 ? (
+        <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
+      ) : (
+        <Bracket fases={fasesMataMata} partidas={partidas} timesPorId={timesPorId} />
+      )}
+    </div>
+  );
+
+  const painelEquipes = (
+    <div>
+      {times.length === 0 ? (
+        <p className="text-muted">Nenhum time inscrito ainda.</p>
+      ) : (
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {times.map((t) => (
+            <Link
+              key={t.id}
+              href={`/times/${t.id}`}
+              className="card group flex items-center gap-3 p-4 transition-colors hover:border-signal/50 hover:-translate-y-0.5 transition-transform duration-200 ease-in-out will-change-transform"
+            >
+              {t.logo ? (
+                <img
+                  src={t.logo}
+                  alt={t.nome}
+                  loading="lazy"
+                  decoding="async"
+                  className="h-12 w-12 flex-shrink-0 rounded-xl object-cover"
+                />
+              ) : (
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-white/5 font-mono text-xs text-muted">
+                  {t.tag.slice(0, 3)}
+                </div>
+              )}
+              <div className="min-w-0">
+                <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
+                <p className="font-mono text-xs text-signal">{t.tag}</p>
+                {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+
+  const panels: Record<string, React.ReactNode> = {
+    'visao-geral': painelVisaoGeral,
+    ...(painelGrupos ? { grupos: painelGrupos } : {}),
+    chaveamento: painelChaveamento,
+    equipes: painelEquipes,
+  };
 
   return (
     <>
@@ -83,6 +256,9 @@ export default async function TorneioDetalhePage({
             <div
               className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${torneio.capa})` }}
+              // fetchPriority ajuda o navegador a priorizar essa imagem de fundo,
+              // já que ela está sempre acima da dobra (visível assim que a página carrega)
+              data-fetchpriority="high"
             />
           )}
           <div className="absolute inset-0 bg-gradient-to-t from-base via-base/85 to-base/40" />
@@ -91,7 +267,7 @@ export default async function TorneioDetalhePage({
             {/* BREADCRUMB + REGULAMENTO */}
             <div className="flex flex-wrap items-center justify-between gap-4 pb-6">
               <nav className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted">
-                <Link href="/" className="transition hover:text-ink">Torneios</Link>
+                <Link href="/" className="transition-colors hover:text-ink">Torneios</Link>
                 <span>/</span>
                 <span className="text-ink">{torneio.nome}</span>
               </nav>
@@ -146,7 +322,7 @@ export default async function TorneioDetalhePage({
                       href={torneio.streamUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex items-center gap-1.5 transition hover:text-signal"
+                      className="flex items-center gap-1.5 transition-colors hover:text-signal"
                     >
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.6 5.7H10v4.4h1.6zm4.4 0h-1.6v4.4H16zM6 0 1.6 4.4v15.2h5.2V24l4.4-4.4h3.5L22.4 12V0zm14.7 11.1-3.5 3.5h-3.5l-3.1 3.1v-3.1H7.1V1.7h13.6z"/></svg>
                       Assistir stream
@@ -177,183 +353,15 @@ export default async function TorneioDetalhePage({
               </div>
             </div>
 
-            {/* NAV DE ABAS — pílula flutuante glassmorphism */}
-            <nav className="mb-2 flex w-fit gap-1 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-md">
-              {tabsDisponiveis.map((t) => (
-                <Link
-                  key={t.key}
-                  href={`/torneios/${torneio.slug}?tab=${t.key}`}
-                  className={`flex-shrink-0 rounded-xl px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider transition ${
-                    tabAtiva === t.key
-                      ? 'bg-gradient-to-r from-signal to-orange-600 text-white shadow-lg shadow-signal/25'
-                      : 'text-muted hover:bg-white/5 hover:text-ink'
-                  }`}
-                >
-                  {t.label}
-                </Link>
-              ))}
-            </nav>
-            <div className="pb-4" />
+            {/* ABAS — troca client-side, sem recarregar a página nem refazer fetch */}
+            <TorneioTabsClient
+              slug={torneio.slug}
+              tabs={tabsDisponiveis}
+              initialTab={tabInicial}
+              panels={panels}
+            />
           </div>
         </section>
-
-        {/* CONTEÚDO DA ABA ATIVA */}
-        <div className="mx-auto max-w-[1400px] px-6 py-10">
-          {/* VISÃO GERAL */}
-          {tabAtiva === 'visao-geral' && (
-            <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
-              <div className="space-y-8">
-                <div>
-                  <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
-                  <p className="whitespace-pre-line text-muted">{torneio.descricao}</p>
-                </div>
-                {torneio.regras && (
-                  <div>
-                    <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Regulamento rápido</h2>
-                    <p className="whitespace-pre-line text-muted">{torneio.regras}</p>
-                  </div>
-                )}
-              </div>
-              <div>
-                <p className="eyebrow mb-4">Últimos resultados</p>
-                {partidasFinalizadas.length === 0 ? (
-                  <p className="text-sm text-muted">Nenhum resultado registrado ainda.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {partidasFinalizadas.map((p) => (
-                      <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* GRUPOS (só existe no modo grupos_mata_mata) */}
-          {tabAtiva === 'grupos' && !ehApenasMataMata && (
-            <div className="space-y-12">
-              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-                {gruposDeTimes.length === 0 && <p className="text-muted">Sem grupos definidos ainda.</p>}
-                {gruposDeTimes.map((grupo) => {
-                  const timesDoGrupo = times.filter((t) => t.grupo === grupo);
-                  const partidasDoGrupo = partidas.filter(
-                    (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
-                  );
-                  const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
-
-                  return (
-                    <div key={grupo} className="card overflow-hidden">
-                      <div className="border-b border-white/10 bg-white/[0.03] px-4 py-3">
-                        <p className="font-mono text-xs font-semibold uppercase tracking-wider">{grupo}</p>
-                      </div>
-                      <table className="w-full text-sm">
-                        <thead>
-                          <tr className="text-left text-xs text-muted">
-                            <th className="px-3 py-2 font-normal">Time</th>
-                            <th className="px-1 py-2 text-center font-normal">V</th>
-                            <th className="px-1 py-2 text-center font-normal">D</th>
-                            <th className="px-1 py-2 text-center font-normal">MV</th>
-                            <th className="px-1 py-2 text-center font-normal">MD</th>
-                            <th className="px-1 py-2 text-center font-normal">Saldo</th>
-                            <th className="px-2 py-2 text-center font-normal">P</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {classificacao.map((linha, i) => (
-                            <tr
-                              key={linha.time.id}
-                              className={`transition hover:bg-white/5 ${i < 2 ? 'bg-signal/10' : ''}`}
-                            >
-                              <td className="max-w-[120px] truncate px-3 py-2 font-medium">
-                                <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
-                                  {linha.time.logo ? (
-                                    <img src={linha.time.logo} alt="" className="h-5 w-5 flex-shrink-0 rounded-full object-cover" />
-                                  ) : (
-                                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[9px] text-muted">
-                                      {linha.time.tag.slice(0, 2)}
-                                    </div>
-                                  )}
-                                  <span className="truncate">{linha.time.tag}</span>
-                                </Link>
-                              </td>
-                              <td className="px-1 py-2 text-center font-mono text-live">{linha.vitorias}</td>
-                              <td className="px-1 py-2 text-center font-mono text-alert">{linha.derrotas}</td>
-                              <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasVencidos}</td>
-                              <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasPerdidos}</td>
-                              <td className="px-1 py-2 text-center font-mono text-muted">
-                                {linha.saldo > 0 ? `+${linha.saldo}` : linha.saldo}
-                              </td>
-                              <td className="px-2 py-2 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-                  );
-                })}
-              </div>
-
-              {fasesDeGrupo.length > 0 && (
-                <div className="space-y-8">
-                  <h2 className="font-display text-xl font-semibold uppercase tracking-wide">Partidas da fase de grupos</h2>
-                  {fasesDeGrupo.map((fase) => (
-                    <div key={fase}>
-                      <p className="eyebrow mb-3">{fase}</p>
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        {ordenarPartidasPorData(partidas.filter((p) => p.fase === fase)).map((p) => (
-                          <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
-                        ))}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* CHAVEAMENTO */}
-          {tabAtiva === 'chaveamento' && (
-            <div>
-              {fasesMataMata.length === 0 ? (
-                <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
-              ) : (
-                <Bracket fases={fasesMataMata} partidas={partidas} timesPorId={timesPorId} />
-              )}
-            </div>
-          )}
-
-          {/* EQUIPES */}
-          {tabAtiva === 'equipes' && (
-            <div>
-              {times.length === 0 ? (
-                <p className="text-muted">Nenhum time inscrito ainda.</p>
-              ) : (
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {times.map((t) => (
-                    <Link
-                      key={t.id}
-                      href={`/times/${t.id}`}
-                      className="card group flex items-center gap-3 p-4 transition hover:border-signal/50"
-                    >
-                      {t.logo ? (
-                        <img src={t.logo} alt={t.nome} className="h-12 w-12 flex-shrink-0 object-cover" />
-                      ) : (
-                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-xs text-muted">
-                          {t.tag.slice(0, 3)}
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
-                        <p className="font-mono text-xs text-signal">{t.tag}</p>
-                        {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-        </div>
       </main>
       <SiteFooter />
     </>

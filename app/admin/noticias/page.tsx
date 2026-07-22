@@ -71,7 +71,7 @@ export default function AdminNoticiasPage() {
                 <div key={n.id} className="card flex items-center justify-between p-4">
                   <div className="flex items-center gap-3">
                     {n.capa ? (
-                      <img src={n.capa} alt={n.titulo} className="h-12 w-16 flex-shrink-0 rounded-md object-cover" />
+                      <img src={n.capa} alt={n.titulo} loading="lazy" decoding="async" className="h-12 w-16 flex-shrink-0 rounded-md object-cover" />
                     ) : (
                       <div className="h-12 w-16 flex-shrink-0 rounded-md bg-surface2" />
                     )}

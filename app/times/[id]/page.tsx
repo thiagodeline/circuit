@@ -47,7 +47,7 @@ export default async function PerfilTimePage({ params }: { params: { id: string 
       <main className="mx-auto max-w-4xl px-6 py-16">
         <div className="flex items-center gap-5">
           {time.logo ? (
-            <img src={time.logo} alt={time.nome} className="h-20 w-20 object-cover" />
+            <img src={time.logo} alt={time.nome} loading="eager" decoding="async" className="h-20 w-20 object-cover" />
           ) : (
             <div className="flex h-20 w-20 items-center justify-center bg-surface2 font-mono text-lg text-muted">
               {time.tag.slice(0, 3)}

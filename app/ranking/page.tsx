@@ -31,13 +31,13 @@ export default async function RankingPage() {
               <Link
                 key={r.id}
                 href={`/times/${time.id}`}
-                className="card group flex items-center gap-4 p-4 transition hover:border-signal/50"
+                className="card group flex items-center gap-4 p-4 transition hover:border-signal/50 hover:-translate-y-0.5 transition-transform duration-200 ease-in-out will-change-transform"
               >
                 <span className="w-8 flex-shrink-0 text-center font-display text-2xl font-semibold text-signal">
                   {r.posicao}
                 </span>
                 {time.logo ? (
-                  <img src={time.logo} alt={time.nome} className="h-11 w-11 flex-shrink-0 object-cover" />
+                  <img src={time.logo} alt={time.nome} loading="lazy" decoding="async" className="h-11 w-11 flex-shrink-0 object-cover" />
                 ) : (
                   <div className="flex h-11 w-11 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-xs text-muted">
                     {time.tag.slice(0, 3)}

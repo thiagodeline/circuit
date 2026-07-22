@@ -4,7 +4,7 @@ function TimeSlot({ time, alinhamento }: { time?: Time; alinhamento: 'esquerda' 
   const conteudo = (
     <>
       {time?.logo ? (
-        <img src={time.logo} alt="" className="h-7 w-7 flex-shrink-0 rounded-full object-cover" />
+        <img src={time.logo} alt="" loading="lazy" decoding="async" className="h-7 w-7 flex-shrink-0 rounded-full object-cover" />
       ) : (
         <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[10px] text-muted">
           {time?.tag.slice(0, 3) ?? '—'}
