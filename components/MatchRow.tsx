@@ -4,9 +4,9 @@ function TimeSlot({ time, alinhamento }: { time?: Time; alinhamento: 'esquerda' 
   const conteudo = (
     <>
       {time?.logo ? (
-        <img src={time.logo} alt="" className="h-7 w-7 flex-shrink-0 object-cover" />
+        <img src={time.logo} alt="" className="h-7 w-7 flex-shrink-0 rounded-full object-cover" />
       ) : (
-        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-[10px] text-muted">
+        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[10px] text-muted">
           {time?.tag.slice(0, 3) ?? '—'}
         </div>
       )}
@@ -46,7 +46,7 @@ export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId
   const dataFormatada = partida.data ? formatarData(partida.data) : null;
 
   return (
-    <div className="border border-line bg-surface transition hover:border-signal/40">
+    <div className="card overflow-hidden transition hover:border-signal/30 hover:bg-white/[0.06]">
       {/* grid de 3 colunas com a coluna central de largura fixa garante o placar
           sempre exatamente centralizado, independente do tamanho dos nomes dos times */}
       <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4 px-4 py-3.5 sm:gap-6 sm:px-5">
@@ -58,7 +58,7 @@ export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId
           <span className={aVenceu ? 'text-ink' : 'text-muted'}>
             {partida.finalizada ? partida.placarA : '-'}
           </span>
-          <span className="text-line">/</span>
+          <span className="text-white/20">/</span>
           <span className={bVenceu ? 'text-ink' : 'text-muted'}>
             {partida.finalizada ? partida.placarB : '-'}
           </span>
@@ -71,22 +71,24 @@ export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId
 
       {/* MAPAS JOGADOS */}
       {partida.mapas && partida.mapas.length > 0 && (
-        <div className="flex flex-wrap gap-x-4 gap-y-1 border-t border-line px-4 py-2 font-mono text-xs text-muted sm:px-5">
+        <div className="flex flex-wrap gap-2 border-t border-white/5 px-4 py-2.5 sm:px-5">
           {partida.mapas.map((m, i) => (
-            <span key={i}>
+            <span key={i} className="pill py-0.5 text-[11px] text-muted">
               {m.nome} <span className="text-ink">{m.placarA}</span>
-              <span className="text-line"> x </span>
+              <span className="text-white/20">x</span>
               <span className="text-ink">{m.placarB}</span>
             </span>
           ))}
         </div>
       )}
 
-      <div className="flex items-center justify-between border-t border-line px-4 py-1.5 font-mono text-[11px] uppercase tracking-wider text-muted sm:px-5">
-        <span>{partida.fase}</span>
-        <span className="flex items-center gap-3">
-          {dataFormatada && <span>{dataFormatada}</span>}
-          <span>{partida.finalizada ? 'Encerrada' : 'A definir'}</span>
+      <div className="flex items-center justify-between gap-2 border-t border-white/5 px-4 py-2.5 sm:px-5">
+        <span className="pill py-0.5 text-[10px] text-signal">{partida.fase}</span>
+        <span className="flex items-center gap-2">
+          {dataFormatada && <span className="pill py-0.5 text-[10px] text-muted">{dataFormatada}</span>}
+          <span className={`pill py-0.5 text-[10px] ${partida.finalizada ? 'text-live' : 'text-muted'}`}>
+            {partida.finalizada ? 'Encerrada' : 'A definir'}
+          </span>
         </span>
       </div>
     </div>

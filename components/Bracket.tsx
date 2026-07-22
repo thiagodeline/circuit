@@ -18,18 +18,18 @@ export function ordenarFasesPlayoff(fases: string[]): string[] {
 function SlotTime({ time }: { time?: Time }) {
   if (!time) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2">
-        <div className="h-5 w-5 flex-shrink-0 border border-dashed border-line" />
+      <div className="flex items-center gap-2 px-3 py-2.5">
+        <div className="h-5 w-5 flex-shrink-0 rounded-full border border-dashed border-white/15" />
         <span className="truncate font-mono text-xs uppercase tracking-wider text-muted">A definir</span>
       </div>
     );
   }
   return (
-    <Link href={`/times/${time.id}`} className="flex items-center gap-2 px-3 py-2 hover:text-signal">
+    <Link href={`/times/${time.id}`} className="flex items-center gap-2 px-3 py-2.5 hover:text-signal">
       {time.logo ? (
-        <img src={time.logo} alt="" className="h-5 w-5 flex-shrink-0 object-cover" />
+        <img src={time.logo} alt="" className="h-5 w-5 flex-shrink-0 rounded-full object-cover" />
       ) : (
-        <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-[9px] text-muted">
+        <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[9px] text-muted">
           {time.tag.slice(0, 2)}
         </div>
       )}
@@ -55,7 +55,7 @@ export function Bracket({
         const partidasDaFase = partidas.filter((p) => p.fase === fase);
         return (
           <div key={fase} className="flex w-64 flex-shrink-0 flex-col justify-around gap-6">
-            <p className="font-mono text-xs font-semibold uppercase tracking-wider text-signal">{fase}</p>
+            <p className="pill w-fit py-1 text-[11px] font-semibold uppercase tracking-wider text-signal">{fase}</p>
             <div className="flex flex-1 flex-col justify-around gap-6">
               {partidasDaFase.map((p) => {
                 const a = timesPorId[p.timeA];
@@ -63,23 +63,23 @@ export function Bracket({
                 const aVenceu = p.finalizada && (p.placarA ?? 0) > (p.placarB ?? 0);
                 const bVenceu = p.finalizada && (p.placarB ?? 0) > (p.placarA ?? 0);
                 return (
-                  <div key={p.id} className="border border-line bg-surface">
-                    <div className={aVenceu ? 'bg-signal/5' : ''}>
+                  <div key={p.id} className="card overflow-hidden">
+                    <div className={`transition ${aVenceu ? 'bg-signal/10' : 'hover:bg-white/5'}`}>
                       <div className="flex items-center justify-between">
                         <SlotTime time={a} />
                         {p.finalizada && (
-                          <span className={`pr-3 font-mono text-sm font-semibold ${aVenceu ? 'text-signal' : 'text-muted'}`}>
+                          <span className={`pr-4 font-mono text-sm font-semibold ${aVenceu ? 'text-signal' : 'text-muted'}`}>
                             {p.placarA}
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="border-t border-line" />
-                    <div className={bVenceu ? 'bg-signal/5' : ''}>
+                    <div className="border-t border-white/5" />
+                    <div className={`transition ${bVenceu ? 'bg-signal/10' : 'hover:bg-white/5'}`}>
                       <div className="flex items-center justify-between">
                         <SlotTime time={b} />
                         {p.finalizada && (
-                          <span className={`pr-3 font-mono text-sm font-semibold ${bVenceu ? 'text-signal' : 'text-muted'}`}>
+                          <span className={`pr-4 font-mono text-sm font-semibold ${bVenceu ? 'text-signal' : 'text-muted'}`}>
                             {p.placarB}
                           </span>
                         )}

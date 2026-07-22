@@ -23,11 +23,11 @@ export async function SiteHeader() {
   }
 
   return (
-    <header className="sticky top-0 z-40 border-b border-line bg-base/95 backdrop-blur">
+    <header className="sticky top-0 z-40 border-b border-white/10 bg-base/80 backdrop-blur-xl">
       {ticker && (
         <Link
           href={ticker.href}
-          className="flex items-center justify-center gap-2 border-b border-line bg-surface px-6 py-1.5 font-mono text-xs uppercase tracking-wider text-muted transition hover:text-signal"
+          className="flex items-center justify-center gap-2 border-b border-white/10 bg-white/[0.03] px-6 py-1.5 font-mono text-xs uppercase tracking-wider text-muted backdrop-blur-sm transition hover:text-signal"
         >
           <span className="h-1.5 w-1.5 animate-pulse bg-live" />
           {ticker.texto}

@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-surface">
+    <footer className="border-t border-white/10 bg-white/[0.02] backdrop-blur-md">
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-3">
           <div>
@@ -42,7 +42,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-2 border-t border-line pt-6 font-mono text-xs uppercase tracking-wider text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 font-mono text-xs uppercase tracking-wider text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Circuit — Organização de torneios de Valorant</p>
           <p>Temporada atual: Circuit Zen</p>
         </div>

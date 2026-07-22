@@ -64,7 +64,7 @@ export default async function TorneioDetalhePage({
       <SiteHeader />
       <main>
         {/* HERO IMERSIVO */}
-        <section className="relative overflow-hidden border-b border-line">
+        <section className="relative overflow-hidden border-b border-white/10">
           {torneio.capa && (
             <div
               className="absolute inset-0 bg-cover bg-center"
@@ -103,7 +103,7 @@ export default async function TorneioDetalhePage({
                 <div className="mb-3 flex flex-wrap items-center gap-3">
                   <StatusBadge status={torneio.status} />
                   {torneio.dataInicio && (
-                    <span className="border border-line bg-surface px-3 py-1 font-mono text-xs text-muted">
+                    <span className="pill text-muted">
                       {new Date(torneio.dataInicio).toLocaleDateString('pt-BR', {
                         weekday: 'long',
                         day: '2-digit',
@@ -163,22 +163,23 @@ export default async function TorneioDetalhePage({
               </div>
             </div>
 
-            {/* NAV DE ABAS */}
-            <nav className="flex gap-1 overflow-x-auto pb-px">
+            {/* NAV DE ABAS — pílula flutuante glassmorphism */}
+            <nav className="mb-2 flex w-fit gap-1 overflow-x-auto rounded-2xl border border-white/10 bg-white/[0.04] p-1.5 backdrop-blur-md">
               {tabsDisponiveis.map((t) => (
                 <Link
                   key={t.key}
                   href={`/torneios/${torneio.slug}?tab=${t.key}`}
-                  className={`flex-shrink-0 border-b-2 px-4 py-3 font-mono text-xs font-semibold uppercase tracking-wider transition ${
+                  className={`flex-shrink-0 rounded-xl px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider transition ${
                     tabAtiva === t.key
-                      ? 'border-signal text-signal'
-                      : 'border-transparent text-muted hover:text-ink'
+                      ? 'bg-gradient-to-r from-signal to-orange-600 text-white shadow-lg shadow-signal/25'
+                      : 'text-muted hover:bg-white/5 hover:text-ink'
                   }`}
                 >
                   {t.label}
                 </Link>
               ))}
             </nav>
+            <div className="pb-4" />
           </div>
         </section>
 
@@ -228,7 +229,7 @@ export default async function TorneioDetalhePage({
 
                   return (
                     <div key={grupo} className="card overflow-hidden">
-                      <div className="border-b border-line bg-surface2 px-4 py-2.5">
+                      <div className="border-b border-white/10 bg-white/[0.03] px-4 py-3">
                         <p className="font-mono text-xs font-semibold uppercase tracking-wider">{grupo}</p>
                       </div>
                       <table className="w-full text-sm">
@@ -245,13 +246,16 @@ export default async function TorneioDetalhePage({
                         </thead>
                         <tbody>
                           {classificacao.map((linha, i) => (
-                            <tr key={linha.time.id} className={i < 2 ? 'bg-signal/5' : ''}>
+                            <tr
+                              key={linha.time.id}
+                              className={`transition hover:bg-white/5 ${i < 2 ? 'bg-signal/10' : ''}`}
+                            >
                               <td className="max-w-[120px] truncate px-3 py-2 font-medium">
                                 <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
                                   {linha.time.logo ? (
-                                    <img src={linha.time.logo} alt="" className="h-5 w-5 flex-shrink-0 object-cover" />
+                                    <img src={linha.time.logo} alt="" className="h-5 w-5 flex-shrink-0 rounded-full object-cover" />
                                   ) : (
-                                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-[9px] text-muted">
+                                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[9px] text-muted">
                                       {linha.time.tag.slice(0, 2)}
                                     </div>
                                   )}

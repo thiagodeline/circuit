@@ -21,7 +21,7 @@ export function AdminSidebar() {
   const router = useRouter();
 
   return (
-    <aside className="flex h-screen w-60 flex-col border-r border-line bg-surface px-4 py-6">
+    <aside className="flex h-screen w-60 flex-col border-r border-white/10 bg-white/[0.02] px-4 py-6 backdrop-blur-md">
       <div className="mb-8 flex items-center gap-2 px-2 font-display text-lg font-semibold">
         <Image src="/logo-mark.png" alt="Circuit" width={24} height={24} />
         Circuit
@@ -32,21 +32,21 @@ export function AdminSidebar() {
             key={i.href}
             href={i.href}
             className={`block rounded-lg px-3 py-2 text-sm transition ${
-              pathname === i.href ? 'bg-surface2 text-ink' : 'text-muted hover:bg-surface2 hover:text-ink'
+              pathname === i.href ? 'bg-white/10 text-ink' : 'text-muted hover:bg-white/5 hover:text-ink'
             }`}
           >
             {i.label}
           </Link>
         ))}
       </nav>
-      <div className="border-t border-line pt-4">
+      <div className="border-t border-white/10 pt-4">
         <p className="truncate px-2 text-xs text-muted">{user?.email}</p>
         <button
           onClick={async () => {
             await sair();
             router.push('/admin/login');
           }}
-          className="mt-2 w-full rounded-lg px-3 py-2 text-left text-sm text-muted transition hover:bg-surface2 hover:text-alert"
+          className="mt-2 w-full rounded-lg px-3 py-2 text-left text-sm text-muted transition hover:bg-white/5 hover:text-alert"
         >
           Sair
         </button>

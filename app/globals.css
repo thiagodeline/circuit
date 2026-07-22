@@ -20,13 +20,24 @@
   body {
     position: relative;
   }
+  /* Glow ambiente fixo no fundo — dá profundidade ao dark mode sem poluir o conteúdo */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(600px circle at 15% 0%, rgba(255, 106, 26, 0.10), transparent 60%),
+      radial-gradient(500px circle at 85% 20%, rgba(31, 229, 192, 0.06), transparent 60%);
+  }
   body::before {
     content: '';
     position: fixed;
     inset: 0;
     z-index: 9999;
     pointer-events: none;
-    opacity: 0.035;
+    opacity: 0.025;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
   }
 }
@@ -39,22 +50,31 @@
     content: '';
     @apply h-px w-5 bg-signal;
   }
+
+  /* Card — vidro fosco escuro, cantos bem arredondados, borda sutil translúcida */
   .card {
-    @apply relative border border-line bg-surface;
-    clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+    @apply relative rounded-2xl border border-white/10 bg-white/[0.04] shadow-lg shadow-black/20 backdrop-blur-md;
   }
+
+  /* Botão primário — pílula com degradê neon laranja e glow */
   .btn-primary {
-    @apply inline-flex items-center justify-center bg-signal px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-black transition hover:bg-signal/85;
-    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    @apply inline-flex items-center justify-center rounded-full bg-gradient-to-r from-signal to-orange-600 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-white shadow-lg shadow-signal/25 transition hover:shadow-signal/40 hover:brightness-110;
   }
+
+  /* Botão secundário — vidro translúcido com borda fina */
   .btn-secondary {
-    @apply inline-flex items-center justify-center border border-line px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-ink transition hover:border-signal/60 hover:bg-surface2;
-    clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+    @apply inline-flex items-center justify-center rounded-full border border-white/10 bg-white/5 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-ink backdrop-blur-md transition hover:border-signal/40 hover:bg-white/10;
   }
+
   .input {
-    @apply w-full border border-line bg-surface2 px-3.5 py-2.5 text-sm text-ink placeholder:text-muted focus:border-signal;
+    @apply w-full rounded-xl border border-white/10 bg-white/5 px-3.5 py-2.5 text-sm text-ink placeholder:text-muted backdrop-blur-sm transition focus:border-signal/60 focus:bg-white/[0.07];
   }
   .label {
     @apply mb-1.5 block font-mono text-xs font-medium uppercase tracking-wider text-muted;
+  }
+
+  /* Pílula pequena — usada em badges de fase/horário/status */
+  .pill {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1 font-mono text-xs backdrop-blur-sm;
   }
 }
