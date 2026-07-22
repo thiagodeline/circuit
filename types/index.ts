@@ -1,17 +1,22 @@
 export type StatusTorneio = 'em_breve' | 'inscricoes_abertas' | 'em_andamento' | 'finalizado';
 
+export type ModoTorneio = 'grupos_mata_mata' | 'apenas_mata_mata';
+
 export interface Torneio {
   id: string;
   slug: string;
   nome: string;
   descricao: string;
   status: StatusTorneio;
+  modoTorneio?: ModoTorneio; // ausência = tratado como 'grupos_mata_mata' (compatibilidade com torneios antigos)
   formato: string; // descrição livre, ex: "8 times · 2 grupos · playoffs"
   dataInicio: string; // ISO date
   dataFim?: string;
   local?: string; // ex: "Online" ou "São Paulo, SP"
   premiacao?: string; // ex: "R$ 2.000 para o campeão"
   regras?: string; // texto livre com regras/observações
+  regulamentoUrl?: string; // link para o PDF do regulamento
+  streamUrl?: string; // canal da transmissão (Twitch, YouTube, etc)
   valorInscricao?: number; // em reais; vazio/0 = inscrição gratuita
   capa?: string; // URL da imagem de capa
   criadoEm: number;

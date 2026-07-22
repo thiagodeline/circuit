@@ -15,9 +15,31 @@ function ehFaseDeGrupo(fase: string) {
   return /grupo/i.test(fase);
 }
 
-export default async function TorneioDetalhePage({ params }: { params: { slug: string } }) {
+const TABS_GRUPOS_MATA_MATA = [
+  { key: 'visao-geral', label: 'Visão Geral' },
+  { key: 'grupos', label: 'Grupos' },
+  { key: 'chaveamento', label: 'Chaveamento' },
+  { key: 'equipes', label: 'Equipes' },
+];
+
+const TABS_APENAS_MATA_MATA = [
+  { key: 'visao-geral', label: 'Visão Geral' },
+  { key: 'chaveamento', label: 'Chaveamento' },
+  { key: 'equipes', label: 'Equipes' },
+];
+
+export default async function TorneioDetalhePage({
+  params,
+  searchParams,
+}: {
+  params: { slug: string };
+  searchParams: { tab?: string };
+}) {
   const torneio = await buscarTorneioPorSlug(params.slug).catch(() => null);
   if (!torneio) notFound();
+
+  const modo = torneio.modoTorneio || 'grupos_mata_mata';
+  const ehApenasMataMata = modo === 'apenas_mata_mata';
 
   const [times, partidas] = await Promise.all([
     listarTimesPorTorneio(torneio.id).catch(() => []),
@@ -27,201 +49,298 @@ export default async function TorneioDetalhePage({ params }: { params: { slug: s
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
   const gruposDeTimes = Array.from(new Set(times.map((t) => t.grupo).filter(Boolean))) as string[];
   const fases = Array.from(new Set(partidas.map((p) => p.fase)));
-  const fasesDeGrupo = fases.filter(ehFaseDeGrupo);
-  const fasesMataMata = fases.filter((f) => !ehFaseDeGrupo(f));
+  const fasesDeGrupo = ehApenasMataMata ? [] : fases.filter(ehFaseDeGrupo);
+  const fasesMataMata = ehApenasMataMata ? fases : fases.filter((f) => !ehFaseDeGrupo(f));
 
-  // Ordem de navegação lateral: grupos primeiro, depois fases de playoff, depois times
-  const itensNav = [
-    ...fasesDeGrupo.map((f) => ({ id: `fase-${f}`, label: f })),
-    ...(fasesMataMata.length > 0 ? [{ id: 'playoffs', label: 'Playoffs' }] : []),
-    { id: 'times', label: 'Times' },
-  ];
+  const tabsDisponiveis = ehApenasMataMata ? TABS_APENAS_MATA_MATA : TABS_GRUPOS_MATA_MATA;
+  const tabAtiva = tabsDisponiveis.some((t) => t.key === searchParams.tab)
+    ? searchParams.tab!
+    : 'visao-geral';
+
+  const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
 
   return (
     <>
       <SiteHeader />
       <main>
-        {/* CAPA / CABEÇALHO DO TORNEIO */}
-        <section
-          className="relative border-b border-line bg-cover bg-center"
-          style={torneio.capa ? { backgroundImage: `url(${torneio.capa})` } : undefined}
-        >
-          <div className="bg-gradient-to-t from-base via-base/92 to-base/50">
-            <div className="mx-auto max-w-[1400px] px-6 py-14">
-              <div className="mb-4 flex items-center gap-3">
-                <StatusBadge status={torneio.status} />
-                <span className="font-mono text-xs text-muted">{torneio.formato}</span>
-              </div>
-              <h1 className="font-display text-4xl font-semibold tracking-tight sm:text-5xl">{torneio.nome}</h1>
-              <p className="mt-3 max-w-2xl text-muted">{torneio.descricao}</p>
+        {/* HERO IMERSIVO */}
+        <section className="relative overflow-hidden border-b border-line">
+          {torneio.capa && (
+            <div
+              className="absolute inset-0 scale-110 bg-cover bg-center opacity-40 blur-2xl"
+              style={{ backgroundImage: `url(${torneio.capa})` }}
+            />
+          )}
+          <div className="absolute inset-0 bg-gradient-to-b from-base/70 via-base/90 to-base" />
 
-              {torneio.status === 'inscricoes_abertas' && (
-                <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary mt-6 inline-flex">
-                  Inscrever meu time
-                </Link>
+          <div className="relative mx-auto max-w-[1400px] px-6 pt-8">
+            {/* BREADCRUMB + REGULAMENTO */}
+            <div className="flex flex-wrap items-center justify-between gap-4 pb-6">
+              <nav className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted">
+                <Link href="/" className="transition hover:text-ink">Torneios</Link>
+                <span>/</span>
+                <span className="text-ink">{torneio.nome}</span>
+              </nav>
+              {torneio.regulamentoUrl && (
+                <a
+                  href={torneio.regulamentoUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-secondary flex items-center gap-2 py-2 text-xs"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+                  </svg>
+                  Regulamento
+                </a>
               )}
+            </div>
 
-              <div className="mt-8 flex flex-wrap gap-8 font-mono text-sm">
-                {torneio.dataInicio && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">Início</p>
-                    <p className="mt-1 text-ink">{new Date(torneio.dataInicio).toLocaleDateString('pt-BR')}</p>
-                  </div>
+            {/* BLOCO PRINCIPAL */}
+            <div className="flex flex-col gap-8 pb-10 sm:flex-row sm:items-end">
+              {torneio.capa && (
+                <img
+                  src={torneio.capa}
+                  alt={torneio.nome}
+                  className="h-32 w-32 flex-shrink-0 rounded-xl object-cover shadow-2xl shadow-black/50 sm:h-40 sm:w-40"
+                />
+              )}
+              <div className="min-w-0 flex-1">
+                <div className="mb-3 flex flex-wrap items-center gap-3">
+                  <StatusBadge status={torneio.status} />
+                  {torneio.dataInicio && (
+                    <span className="border border-line bg-surface px-3 py-1 font-mono text-xs text-muted">
+                      {new Date(torneio.dataInicio).toLocaleDateString('pt-BR', {
+                        weekday: 'long',
+                        day: '2-digit',
+                        month: '2-digit',
+                      })}
+                      {torneio.dataInicio.includes('T') &&
+                        ` às ${new Date(torneio.dataInicio).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`}
+                    </span>
+                  )}
+                </div>
+
+                <h1 className="font-display text-4xl font-semibold uppercase tracking-tight sm:text-5xl">
+                  {torneio.nome}
+                </h1>
+
+                {torneio.status === 'inscricoes_abertas' && (
+                  <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary mt-5 inline-flex">
+                    Inscrever meu time
+                  </Link>
                 )}
-                {torneio.dataFim && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">Término</p>
-                    <p className="mt-1 text-ink">{new Date(torneio.dataFim).toLocaleDateString('pt-BR')}</p>
-                  </div>
-                )}
-                {torneio.local && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">Local</p>
-                    <p className="mt-1 text-ink">{torneio.local}</p>
-                  </div>
-                )}
-                {torneio.premiacao && (
-                  <div>
-                    <p className="text-xs uppercase tracking-wider text-muted">Premiação</p>
-                    <p className="mt-1 text-signal">{torneio.premiacao}</p>
-                  </div>
-                )}
+
+                {/* INFOS COMPLEMENTARES COM ÍCONES */}
+                <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-xs text-muted">
+                  {torneio.streamUrl && (
+                    <a
+                      href={torneio.streamUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 transition hover:text-signal"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.6 5.7H10v4.4h1.6zm4.4 0h-1.6v4.4H16zM6 0 1.6 4.4v15.2h5.2V24l4.4-4.4h3.5L22.4 12V0zm14.7 11.1-3.5 3.5h-3.5l-3.1 3.1v-3.1H7.1V1.7h13.6z"/></svg>
+                      Assistir stream
+                    </a>
+                  )}
+                  {torneio.local && (
+                    <span className="flex items-center gap-1.5">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                      {torneio.local}
+                    </span>
+                  )}
+                  {torneio.premiacao && (
+                    <span className="flex items-center gap-1.5 text-signal">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8m-4-4v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a2 2 0 0 0 2 4M17 6h3a2 2 0 0 1-2 4"/></svg>
+                      {torneio.premiacao}
+                    </span>
+                  )}
+                  <span className="flex items-center gap-1.5">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11.5 11 13.5 15 9"/><circle cx="12" cy="12" r="9"/></svg>
+                    Vitória = 3 pts
+                  </span>
+                  {torneio.valorInscricao ? (
+                    <span className="flex items-center gap-1.5">
+                      Inscrição: R$ {torneio.valorInscricao.toFixed(2)}
+                    </span>
+                  ) : null}
+                </div>
               </div>
             </div>
+
+            {/* NAV DE ABAS */}
+            <nav className="flex gap-1 overflow-x-auto pb-px">
+              {tabsDisponiveis.map((t) => (
+                <Link
+                  key={t.key}
+                  href={`/torneios/${torneio.slug}?tab=${t.key}`}
+                  className={`flex-shrink-0 border-b-2 px-4 py-3 font-mono text-xs font-semibold uppercase tracking-wider transition ${
+                    tabAtiva === t.key
+                      ? 'border-signal text-signal'
+                      : 'border-transparent text-muted hover:text-ink'
+                  }`}
+                >
+                  {t.label}
+                </Link>
+              ))}
+            </nav>
           </div>
         </section>
 
-        {/* LAYOUT 3 COLUNAS */}
+        {/* CONTEÚDO DA ABA ATIVA */}
         <div className="mx-auto max-w-[1400px] px-6 py-10">
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-[200px_1fr_300px]">
-            {/* NAV LATERAL ESQUERDA */}
-            <aside className="hidden lg:block">
-              <div className="sticky top-24 space-y-1">
-                <p className="eyebrow mb-3">Neste torneio</p>
-                {itensNav.map((item) => (
-                  <a
-                    key={item.id}
-                    href={`#${item.id}`}
-                    className="block border-l-2 border-transparent py-1.5 pl-3 text-sm text-muted transition hover:border-signal hover:text-ink"
-                  >
-                    {item.label}
-                  </a>
-                ))}
+          {/* VISÃO GERAL */}
+          {tabAtiva === 'visao-geral' && (
+            <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+              <div className="space-y-8">
+                <div>
+                  <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
+                  <p className="text-muted">{torneio.descricao}</p>
+                </div>
+                {torneio.regras && (
+                  <div>
+                    <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Regulamento rápido</h2>
+                    <p className="whitespace-pre-line text-muted">{torneio.regras}</p>
+                  </div>
+                )}
               </div>
-            </aside>
-
-            {/* CONTEÚDO CENTRAL: PARTIDAS */}
-            <div className="min-w-0 space-y-12">
-              {fases.length === 0 && (
-                <p className="text-muted">As partidas ainda não foram definidas.</p>
-              )}
-
-              {fasesDeGrupo.map((fase) => (
-                <section key={fase} id={`fase-${fase}`} className="scroll-mt-24">
-                  <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">{fase}</h2>
+              <div>
+                <p className="eyebrow mb-4">Últimos resultados</p>
+                {partidasFinalizadas.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum resultado registrado ainda.</p>
+                ) : (
                   <div className="space-y-2">
-                    {ordenarPartidasPorData(partidas.filter((p) => p.fase === fase)).map((p) => (
+                    {partidasFinalizadas.map((p) => (
                       <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
                     ))}
                   </div>
-                </section>
-              ))}
-
-              {fasesMataMata.length > 0 && (
-                <section id="playoffs" className="scroll-mt-24">
-                  <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">Playoffs</h2>
-                  <Bracket fases={fasesMataMata} partidas={partidas} timesPorId={timesPorId} />
-                </section>
-              )}
-
-              {/* TIMES */}
-              <section id="times" className="scroll-mt-24">
-                <h2 className="mb-4 font-display text-xl font-semibold uppercase tracking-wide">Times inscritos</h2>
-                {times.length === 0 ? (
-                  <p className="text-muted">Nenhum time inscrito ainda.</p>
-                ) : (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    {times.map((t) => (
-                      <Link key={t.id} href={`/times/${t.id}`} className="card group flex items-center gap-3 p-4 transition hover:border-signal/50">
-                        {t.logo ? (
-                          <img src={t.logo} alt={t.nome} className="h-10 w-10 flex-shrink-0 object-cover" />
-                        ) : (
-                          <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-xs text-muted">
-                            {t.tag.slice(0, 3)}
-                          </div>
-                        )}
-                        <div className="min-w-0">
-                          <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
-                          <p className="font-mono text-xs text-signal">{t.tag}</p>
-                          {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
                 )}
-              </section>
+              </div>
             </div>
+          )}
 
-            {/* SIDEBAR DIREITA: CLASSIFICAÇÃO */}
-            <aside className="space-y-6 lg:sticky lg:top-24 lg:h-fit">
-              <p className="eyebrow">Classificação</p>
-              {gruposDeTimes.length === 0 && <p className="text-sm text-muted">Sem grupos definidos ainda.</p>}
-              {gruposDeTimes.map((grupo) => {
-                const timesDoGrupo = times.filter((t) => t.grupo === grupo);
-                const partidasDoGrupo = partidas.filter(
-                  (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
-                );
-                const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
+          {/* GRUPOS (só existe no modo grupos_mata_mata) */}
+          {tabAtiva === 'grupos' && !ehApenasMataMata && (
+            <div className="space-y-12">
+              <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+                {gruposDeTimes.length === 0 && <p className="text-muted">Sem grupos definidos ainda.</p>}
+                {gruposDeTimes.map((grupo) => {
+                  const timesDoGrupo = times.filter((t) => t.grupo === grupo);
+                  const partidasDoGrupo = partidas.filter(
+                    (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
+                  );
+                  const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
 
-                return (
-                  <div key={grupo} className="card overflow-hidden">
-                    <div className="border-b border-line bg-surface2 px-3 py-2">
-                      <p className="font-mono text-xs font-medium uppercase tracking-wider">{grupo}</p>
-                    </div>
-                    <table className="w-full text-xs">
-                      <thead>
-                        <tr className="text-left text-muted">
-                          <th className="px-2 py-1.5 font-normal">Time</th>
-                          <th className="px-0.5 py-1.5 text-center font-normal">V</th>
-                          <th className="px-0.5 py-1.5 text-center font-normal">D</th>
-                          <th className="px-0.5 py-1.5 text-center font-normal">MV</th>
-                          <th className="px-0.5 py-1.5 text-center font-normal">MD</th>
-                          <th className="px-0.5 py-1.5 text-center font-normal">Saldo</th>
-                          <th className="px-1 py-1.5 text-center font-normal">P</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {classificacao.map((linha, i) => (
-                          <tr key={linha.time.id} className={i < 2 ? 'bg-signal/5' : ''}>
-                            <td className="max-w-[70px] truncate px-2 py-1.5 font-medium">
-                              <Link href={`/times/${linha.time.id}`} className="flex items-center gap-1.5 hover:text-signal">
-                                {linha.time.logo ? (
-                                  <img src={linha.time.logo} alt="" className="h-4 w-4 flex-shrink-0 object-cover" />
-                                ) : (
-                                  <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-[8px] text-muted">
-                                    {linha.time.tag.slice(0, 2)}
-                                  </div>
-                                )}
-                                <span className="truncate">{linha.time.tag}</span>
-                              </Link>
-                            </td>
-                            <td className="px-0.5 py-1.5 text-center font-mono text-live">{linha.vitorias}</td>
-                            <td className="px-0.5 py-1.5 text-center font-mono text-alert">{linha.derrotas}</td>
-                            <td className="px-0.5 py-1.5 text-center font-mono text-muted">{linha.mapasVencidos}</td>
-                            <td className="px-0.5 py-1.5 text-center font-mono text-muted">{linha.mapasPerdidos}</td>
-                            <td className="px-0.5 py-1.5 text-center font-mono text-muted">
-                              {linha.saldo > 0 ? `+${linha.saldo}` : linha.saldo}
-                            </td>
-                            <td className="px-1 py-1.5 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
+                  return (
+                    <div key={grupo} className="card overflow-hidden">
+                      <div className="border-b border-line bg-surface2 px-4 py-2.5">
+                        <p className="font-mono text-xs font-semibold uppercase tracking-wider">{grupo}</p>
+                      </div>
+                      <table className="w-full text-sm">
+                        <thead>
+                          <tr className="text-left text-xs text-muted">
+                            <th className="px-3 py-2 font-normal">Time</th>
+                            <th className="px-1 py-2 text-center font-normal">V</th>
+                            <th className="px-1 py-2 text-center font-normal">D</th>
+                            <th className="px-1 py-2 text-center font-normal">MV</th>
+                            <th className="px-1 py-2 text-center font-normal">MD</th>
+                            <th className="px-1 py-2 text-center font-normal">Saldo</th>
+                            <th className="px-2 py-2 text-center font-normal">P</th>
                           </tr>
+                        </thead>
+                        <tbody>
+                          {classificacao.map((linha, i) => (
+                            <tr key={linha.time.id} className={i < 2 ? 'bg-signal/5' : ''}>
+                              <td className="max-w-[120px] truncate px-3 py-2 font-medium">
+                                <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
+                                  {linha.time.logo ? (
+                                    <img src={linha.time.logo} alt="" className="h-5 w-5 flex-shrink-0 object-cover" />
+                                  ) : (
+                                    <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-[9px] text-muted">
+                                      {linha.time.tag.slice(0, 2)}
+                                    </div>
+                                  )}
+                                  <span className="truncate">{linha.time.tag}</span>
+                                </Link>
+                              </td>
+                              <td className="px-1 py-2 text-center font-mono text-live">{linha.vitorias}</td>
+                              <td className="px-1 py-2 text-center font-mono text-alert">{linha.derrotas}</td>
+                              <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasVencidos}</td>
+                              <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasPerdidos}</td>
+                              <td className="px-1 py-2 text-center font-mono text-muted">
+                                {linha.saldo > 0 ? `+${linha.saldo}` : linha.saldo}
+                              </td>
+                              <td className="px-2 py-2 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {fasesDeGrupo.length > 0 && (
+                <div className="space-y-8">
+                  <h2 className="font-display text-xl font-semibold uppercase tracking-wide">Partidas da fase de grupos</h2>
+                  {fasesDeGrupo.map((fase) => (
+                    <div key={fase}>
+                      <p className="eyebrow mb-3">{fase}</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {ordenarPartidasPorData(partidas.filter((p) => p.fase === fase)).map((p) => (
+                          <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })}
-            </aside>
-          </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* CHAVEAMENTO */}
+          {tabAtiva === 'chaveamento' && (
+            <div>
+              {fasesMataMata.length === 0 ? (
+                <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
+              ) : (
+                <Bracket fases={fasesMataMata} partidas={partidas} timesPorId={timesPorId} />
+              )}
+            </div>
+          )}
+
+          {/* EQUIPES */}
+          {tabAtiva === 'equipes' && (
+            <div>
+              {times.length === 0 ? (
+                <p className="text-muted">Nenhum time inscrito ainda.</p>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {times.map((t) => (
+                    <Link
+                      key={t.id}
+                      href={`/times/${t.id}`}
+                      className="card group flex items-center gap-3 p-4 transition hover:border-signal/50"
+                    >
+                      {t.logo ? (
+                        <img src={t.logo} alt={t.nome} className="h-12 w-12 flex-shrink-0 object-cover" />
+                      ) : (
+                        <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center bg-surface2 font-mono text-xs text-muted">
+                          {t.tag.slice(0, 3)}
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
+                        <p className="font-mono text-xs text-signal">{t.tag}</p>
+                        {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </main>
       <SiteFooter />

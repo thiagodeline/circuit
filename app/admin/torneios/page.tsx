@@ -5,19 +5,22 @@ import { RequireAuth } from '@/components/RequireAuth';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { StatusBadge } from '@/components/StatusBadge';
 import { listarTorneios, criarTorneio, atualizarTorneio, excluirTorneio } from '@/lib/data';
-import { Torneio, StatusTorneio } from '@/types';
+import { Torneio, StatusTorneio, ModoTorneio } from '@/types';
 
 const vazio = {
   slug: '',
   nome: '',
   descricao: '',
   status: 'em_breve' as StatusTorneio,
+  modoTorneio: 'grupos_mata_mata' as ModoTorneio,
   formato: '',
   dataInicio: '',
   dataFim: '',
   local: '',
   premiacao: '',
   regras: '',
+  regulamentoUrl: '',
+  streamUrl: '',
   valorInscricao: '',
   capa: '',
 };
@@ -44,12 +47,15 @@ export default function AdminTorneiosPage() {
       nome: t.nome,
       descricao: t.descricao,
       status: t.status,
+      modoTorneio: t.modoTorneio || 'grupos_mata_mata',
       formato: t.formato,
       dataInicio: t.dataInicio,
       dataFim: t.dataFim || '',
       local: t.local || '',
       premiacao: t.premiacao || '',
       regras: t.regras || '',
+      regulamentoUrl: t.regulamentoUrl || '',
+      streamUrl: t.streamUrl || '',
       valorInscricao: t.valorInscricao ? String(t.valorInscricao) : '',
       capa: t.capa || '',
     });
@@ -169,6 +175,24 @@ export default function AdminTorneiosPage() {
                 />
               </div>
               <div>
+                <label className="label">Link do regulamento (PDF)</label>
+                <input
+                  className="input"
+                  value={form.regulamentoUrl}
+                  onChange={(e) => setForm({ ...form, regulamentoUrl: e.target.value })}
+                  placeholder="https://..."
+                />
+              </div>
+              <div>
+                <label className="label">Canal da stream (Twitch/YouTube)</label>
+                <input
+                  className="input"
+                  value={form.streamUrl}
+                  onChange={(e) => setForm({ ...form, streamUrl: e.target.value })}
+                  placeholder="https://twitch.tv/..."
+                />
+              </div>
+              <div>
                 <label className="label">Status</label>
                 <select
                   className="input"
@@ -180,6 +204,20 @@ export default function AdminTorneiosPage() {
                   <option value="em_andamento">Em andamento</option>
                   <option value="finalizado">Finalizado</option>
                 </select>
+              </div>
+              <div>
+                <label className="label">Modo de torneio</label>
+                <select
+                  className="input"
+                  value={form.modoTorneio}
+                  onChange={(e) => setForm({ ...form, modoTorneio: e.target.value as ModoTorneio })}
+                >
+                  <option value="grupos_mata_mata">Fase de Grupos + Mata-Mata</option>
+                  <option value="apenas_mata_mata">Apenas Mata-Mata</option>
+                </select>
+                <p className="mt-1 text-xs text-muted">
+                  Define as abas exibidas na página pública do torneio (a aba "Grupos" some se for só mata-mata).
+                </p>
               </div>
               <div>
                 <label className="label">Data de início</label>
