@@ -67,11 +67,11 @@ export default async function TorneioDetalhePage({
         <section className="relative overflow-hidden border-b border-line">
           {torneio.capa && (
             <div
-              className="absolute inset-0 scale-110 bg-cover bg-center opacity-40 blur-2xl"
+              className="absolute inset-0 bg-cover bg-center"
               style={{ backgroundImage: `url(${torneio.capa})` }}
             />
           )}
-          <div className="absolute inset-0 bg-gradient-to-b from-base/70 via-base/90 to-base" />
+          <div className="absolute inset-0 bg-gradient-to-t from-base via-base/85 to-base/40" />
 
           <div className="relative mx-auto max-w-[1400px] px-6 pt-8">
             {/* BREADCRUMB + REGULAMENTO */}
@@ -96,15 +96,9 @@ export default async function TorneioDetalhePage({
               )}
             </div>
 
-            {/* BLOCO PRINCIPAL */}
-            <div className="flex flex-col gap-8 pb-10 sm:flex-row sm:items-end">
-              {torneio.capa && (
-                <img
-                  src={torneio.capa}
-                  alt={torneio.nome}
-                  className="h-32 w-32 flex-shrink-0 rounded-xl object-cover shadow-2xl shadow-black/50 sm:h-40 sm:w-40"
-                />
-              )}
+            {/* BLOCO PRINCIPAL — o banner (torneio.capa) fica como fundo desta seção inteira,
+                atrás do título, ao invés de aparecer como miniatura ao lado */}
+            <div className="flex flex-col gap-8 pb-10 pt-16 sm:pt-24">
               <div className="min-w-0 flex-1">
                 <div className="mb-3 flex flex-wrap items-center gap-3">
                   <StatusBadge status={torneio.status} />
@@ -196,7 +190,7 @@ export default async function TorneioDetalhePage({
               <div className="space-y-8">
                 <div>
                   <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
-                  <p className="text-muted">{torneio.descricao}</p>
+                  <p className="whitespace-pre-line text-muted">{torneio.descricao}</p>
                 </div>
                 {torneio.regras && (
                   <div>
