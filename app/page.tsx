@@ -45,8 +45,6 @@ export default async function HomePage() {
 
   const emAndamento = torneios.filter((t) => t.status === 'em_andamento');
   const inscricoesAbertas = torneios.filter((t) => t.status === 'inscricoes_abertas');
-  const emBreve = torneios.filter((t) => t.status === 'em_breve');
-  const finalizados = torneios.filter((t) => t.status === 'finalizado');
 
   const destaque = emAndamento[0] || inscricoesAbertas[0];
   const resto = torneios.filter((t) => t.id !== destaque?.id);
@@ -56,32 +54,10 @@ export default async function HomePage() {
       <SiteHeader />
       <main>
         {/* BARRA DE TÍTULO COMPACTA — sem hero grande */}
-        <section className="border-b border-line bg-circuit-trace bg-[length:120px_120px]">
+        <section className="border-b border-white/10 bg-circuit-trace bg-[length:120px_120px]">
           <div className="mx-auto max-w-6xl px-6 py-10">
-            <div className="flex flex-wrap items-end justify-between gap-6">
-              <div>
-                <p className="eyebrow mb-2">Circuit</p>
-                <h1 className="font-display text-3xl font-semibold uppercase tracking-tight sm:text-4xl">Torneios</h1>
-              </div>
-              <div className="flex gap-8">
-                <div>
-                  <p className="font-display text-2xl font-semibold text-live">{emAndamento.length}</p>
-                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Em andamento</p>
-                </div>
-                <div>
-                  <p className="font-display text-2xl font-semibold text-signal">{inscricoesAbertas.length}</p>
-                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Inscrições abertas</p>
-                </div>
-                <div>
-                  <p className="font-display text-2xl font-semibold">{emBreve.length}</p>
-                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Em breve</p>
-                </div>
-                <div>
-                  <p className="font-display text-2xl font-semibold text-muted">{finalizados.length}</p>
-                  <p className="font-mono text-xs uppercase tracking-wider text-muted">Finalizados</p>
-                </div>
-              </div>
-            </div>
+            <p className="eyebrow mb-2">Circuit</p>
+            <h1 className="font-display text-3xl font-semibold uppercase tracking-tight sm:text-4xl">Torneios</h1>
           </div>
         </section>
 

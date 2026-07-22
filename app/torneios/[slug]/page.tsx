@@ -15,6 +15,20 @@ function ehFaseDeGrupo(fase: string) {
   return /grupo/i.test(fase);
 }
 
+// Extrai o número da rodada do texto da fase (ex: "Grupo A / Rodada 2" -> 2),
+// para ordenar todas as partidas da Rodada 1 antes das da Rodada 2, e assim por diante.
+function extrairNumeroRodada(fase: string): number {
+  const match = fase.match(/rodada\s*(\d+)/i);
+  return match ? Number(match[1]) : Number.POSITIVE_INFINITY; // sem rodada identificada vai para o final
+}
+
+function ordenarFasesPorRodada(fasesLista: string[]): string[] {
+  return [...fasesLista].sort((a, b) => {
+    const diff = extrairNumeroRodada(a) - extrairNumeroRodada(b);
+    return diff !== 0 ? diff : a.localeCompare(b);
+  });
+}
+
 const TABS_GRUPOS_MATA_MATA = [
   { key: 'visao-geral', label: 'Visão Geral' },
   { key: 'grupos', label: 'Grupos' },
@@ -49,7 +63,7 @@ export default async function TorneioDetalhePage({
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
   const gruposDeTimes = Array.from(new Set(times.map((t) => t.grupo).filter(Boolean))) as string[];
   const fases = Array.from(new Set(partidas.map((p) => p.fase)));
-  const fasesDeGrupo = ehApenasMataMata ? [] : fases.filter(ehFaseDeGrupo);
+  const fasesDeGrupo = ehApenasMataMata ? [] : ordenarFasesPorRodada(fases.filter(ehFaseDeGrupo));
   const fasesMataMata = ehApenasMataMata ? fases : fases.filter((f) => !ehFaseDeGrupo(f));
 
   const tabsDisponiveis = ehApenasMataMata ? TABS_APENAS_MATA_MATA : TABS_GRUPOS_MATA_MATA;
