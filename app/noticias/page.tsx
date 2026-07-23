@@ -6,7 +6,7 @@ import { listarNoticias } from '@/lib/data';
 export const revalidate = 60;
 
 export default async function NoticiasPage() {
-  const noticias = await listarNoticias().catch(() => []);
+  const noticias = await listarNoticias().catch((err) => { console.error('Erro ao buscar noticias:', err); return []; });
 
   return (
     <>
