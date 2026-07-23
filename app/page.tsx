@@ -41,7 +41,9 @@ export default async function HomePage() {
   let torneios: Torneio[] = [];
   try {
     torneios = await listarTorneios();
-  } catch {}
+  } catch (err) {
+    console.error('Erro ao buscar torneios na home:', err);
+  }
 
   const emAndamento = torneios.filter((t) => t.status === 'em_andamento');
   const inscricoesAbertas = torneios.filter((t) => t.status === 'inscricoes_abertas');
