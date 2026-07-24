@@ -4,11 +4,11 @@
 
 @layer base {
   ::selection {
-    background-color: #ff6a1a;
-    color: #0f1419;
+    background-color: #0060ff;
+    color: #0d1117;
   }
   :focus-visible {
-    outline: 2px solid #ff6a1a;
+    outline: 2px solid #0060ff;
     outline-offset: 2px;
   }
   h1, h2, h3 {
@@ -28,7 +28,7 @@
     z-index: -1;
     pointer-events: none;
     background:
-      radial-gradient(600px circle at 15% 0%, rgba(255, 106, 26, 0.10), transparent 60%),
+      radial-gradient(600px circle at 15% 0%, rgba(0, 96, 255, 0.12), transparent 60%),
       radial-gradient(500px circle at 85% 20%, rgba(31, 229, 192, 0.06), transparent 60%);
   }
   body::before {
@@ -62,7 +62,7 @@
   /* Botão primário — pílula com degradê neon laranja; glow leve só na borda,
      sem shadow-lg (blur de sombra grande é caro; borda com brilho é mais barata) */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-full border border-signal/50 bg-gradient-to-r from-signal to-orange-600 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:border-signal hover:brightness-110;
+    @apply inline-flex items-center justify-center rounded-full border border-signal/50 bg-gradient-to-r from-signal to-blue-700 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:border-signal hover:brightness-110;
   }
 
   /* Botão secundário — vidro translúcido com borda fina */
