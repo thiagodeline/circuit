@@ -38,7 +38,15 @@ function formatarData(data: string) {
   });
 }
 
-export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId: Record<string, Time> }) {
+export function MatchRow({
+  partida,
+  timesPorId,
+  nomeTorneio,
+}: {
+  partida: Partida;
+  timesPorId: Record<string, Time>;
+  nomeTorneio?: string; // quando informado, o badge mostra "Torneio • Fase" (usado no feed da Home)
+}) {
   const a = timesPorId[partida.timeA];
   const b = timesPorId[partida.timeB];
   const aVenceu = partida.finalizada && (partida.placarA ?? 0) > (partida.placarB ?? 0);
@@ -83,7 +91,9 @@ export function MatchRow({ partida, timesPorId }: { partida: Partida; timesPorId
       )}
 
       <div className="flex items-center justify-between gap-2 border-t border-white/5 px-4 py-2.5 sm:px-5">
-        <span className="pill py-0.5 text-[10px] text-signal">{partida.fase}</span>
+        <span className="pill py-0.5 text-[10px] text-signal">
+          {nomeTorneio ? `${nomeTorneio} • ${partida.fase}` : partida.fase}
+        </span>
         <span className="flex items-center gap-2">
           {dataFormatada && <span className="pill py-0.5 text-[10px] text-muted">{dataFormatada}</span>}
           <span className={`pill py-0.5 text-[10px] ${partida.finalizada ? 'text-live' : 'text-muted'}`}>

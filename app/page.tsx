@@ -141,7 +141,7 @@ export default async function HomePage() {
             ) : (
               <div className="space-y-2">
                 {partidasEmFoco.map((p) => (
-                  <MatchRow key={p.id} partida={p} timesPorId={timesEmFoco} />
+                  <MatchRow key={p.id} partida={p} timesPorId={timesEmFoco} nomeTorneio={torneioEmFoco?.nome} />
                 ))}
               </div>
             )}

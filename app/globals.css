@@ -5,7 +5,7 @@
 @layer base {
   ::selection {
     background-color: #ff6a1a;
-    color: #08090b;
+    color: #0f1419;
   }
   :focus-visible {
     outline: 2px solid #ff6a1a;

@@ -14,7 +14,9 @@ import {
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 import { Torneio, Time, Partida, MapaJogado } from '@/types';
 
-const vazio = { fase: '', timeA: '', timeB: '', data: '' };
+const FASES_CHAVE = ['Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Grande Final'];
+
+const vazio = { fase: FASES_CHAVE[0], timeA: '', timeB: '', data: '' };
 
 // Converte texto tipo "Haven 13-2, Split 5-13" em MapaJogado[]
 function parsearMapas(texto: string): MapaJogado[] {
@@ -126,7 +128,7 @@ export default function AdminResultadosPage() {
           <h1 className="font-display text-3xl font-semibold">Resultados</h1>
 
           <div className="mt-6 max-w-xs">
-            <label className="label">Torneio</label>
+            <label className="label">Torneio Origem</label>
             <select className="input" value={torneioId} onChange={(e) => setTorneioId(e.target.value)}>
               {torneios.map((t) => (
                 <option key={t.id} value={t.id}>{t.nome}</option>
@@ -140,7 +142,7 @@ export default function AdminResultadosPage() {
               {partidasOrdenadas.map((p) => (
                 <div key={p.id} className="card p-4">
                   <div className="mb-2 flex items-center justify-between">
-                    <span className="font-mono text-xs text-signal">{p.fase}</span>
+                    <span className="font-mono text-xs text-signal">{torneios.find((t) => t.id === torneioId)?.nome} • {p.fase}</span>
                     <button onClick={() => excluir(p.id)} className="text-xs text-alert hover:underline">Excluir</button>
                   </div>
                   <div className="flex items-center gap-3">
@@ -207,8 +209,12 @@ export default function AdminResultadosPage() {
             <form onSubmit={criar} className="card h-fit space-y-4 p-6">
               <h2 className="font-display font-semibold">Nova partida</h2>
               <div>
-                <label className="label">Fase</label>
-                <input required className="input" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })} placeholder="Grupo A / Quartas de Final / Semifinal / Final" />
+                <label className="label">Fase da Chave</label>
+                <select required className="input" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })}>
+                  {FASES_CHAVE.map((f) => (
+                    <option key={f} value={f}>{f}</option>
+                  ))}
+                </select>
               </div>
               <div>
                 <label className="label">Time A</label>

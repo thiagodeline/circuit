@@ -115,6 +115,11 @@ export async function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-5">
+          {inscricoes && (
+            <Link href={`/torneios/${inscricoes.slug}/inscricao`} className="btn-primary px-5 py-2 text-xs">
+              Inscrever Time
+            </Link>
+          )}
           <a
             href="https://www.youtube.com/@circuitgg_vlr"
             target="_blank"

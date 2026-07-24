@@ -1,13 +1,24 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { criarInscricao } from '@/lib/data';
 import { Torneio } from '@/types';
 
 type Etapa = 'formulario' | 'aguardando_pix' | 'pago' | 'enviado';
 
-export function InscricaoForm({ torneio }: { torneio: Torneio }) {
+export function InscricaoForm({
+  torneiosAbertos,
+  torneioInicialId,
+}: {
+  torneiosAbertos: Torneio[];
+  torneioInicialId: string;
+}) {
+  const [torneioId, setTorneioId] = useState(torneioInicialId);
+  const torneio = useMemo(
+    () => torneiosAbertos.find((t) => t.id === torneioId) || torneiosAbertos[0],
+    [torneiosAbertos, torneioId]
+  );
   const ehPago = Boolean(torneio.valorInscricao && torneio.valorInscricao > 0);
 
   const [etapa, setEtapa] = useState<Etapa>('formulario');
@@ -79,7 +90,6 @@ export function InscricaoForm({ torneio }: { torneio: Torneio }) {
       setPix(dados);
       setEtapa('aguardando_pix');
 
-      // Fica perguntando ao servidor se o PIX já caiu, a cada 4 segundos
       pollRef.current = setInterval(async () => {
         const r = await fetch(`/api/inscricao/status?id=${dados.inscricaoId}`);
         const d = await r.json();
@@ -103,7 +113,6 @@ export function InscricaoForm({ torneio }: { torneio: Torneio }) {
     if (pix?.copiaCola) navigator.clipboard.writeText(pix.copiaCola);
   }
 
-  // --- TELAS DE CONFIRMAÇÃO ---
   if (etapa === 'enviado' || etapa === 'pago') {
     return (
       <div className="mx-auto max-w-xl px-6 py-24 text-center">
@@ -122,7 +131,6 @@ export function InscricaoForm({ torneio }: { torneio: Torneio }) {
     );
   }
 
-  // --- TELA DE PAGAMENTO PIX ---
   if (etapa === 'aguardando_pix' && pix) {
     return (
       <div className="mx-auto max-w-md px-6 py-16 text-center">
@@ -158,19 +166,26 @@ export function InscricaoForm({ torneio }: { torneio: Torneio }) {
     );
   }
 
-  // --- FORMULÁRIO ---
   return (
     <div className="mx-auto max-w-xl px-6 py-16">
-      <p className="eyebrow mb-3">{torneio.nome}</p>
+      <p className="eyebrow mb-3">Inscrição de equipe</p>
       <h1 className="font-display text-3xl font-semibold">Inscrever time</h1>
-      <p className="mt-3 text-muted">
-        Preencha os dados do seu time para participar deste torneio.
-        {ehPago && (
-          <> A inscrição custa <strong className="text-signal">R$ {torneio.valorInscricao?.toFixed(2)}</strong>, pago via PIX no próximo passo.</>
-        )}
-      </p>
+      <p className="mt-3 text-muted">Escolha o torneio e preencha os dados do seu time para participar.</p>
 
       <form onSubmit={ehPago ? gerarPix : enviarGratuito} className="card mt-8 space-y-4 p-6">
+        <div>
+          <label className="label">Torneio</label>
+          <select className="input" value={torneio.id} onChange={(e) => setTorneioId(e.target.value)}>
+            {torneiosAbertos.map((t) => (
+              <option key={t.id} value={t.id}>{t.nome}</option>
+            ))}
+          </select>
+          {ehPago && (
+            <p className="mt-1 text-xs text-muted">
+              A inscrição custa <strong className="text-signal">R$ {torneio.valorInscricao?.toFixed(2)}</strong>, pago via PIX no próximo passo.
+            </p>
+          )}
+        </div>
         <div>
           <label className="label">Nome do time</label>
           <input required className="input" value={form.nomeTime} onChange={(e) => setForm({ ...form, nomeTime: e.target.value })} />

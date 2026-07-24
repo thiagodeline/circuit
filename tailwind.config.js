@@ -4,10 +4,10 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        base: '#08090B',      // fundo principal, quase preto
-        surface: '#111214',   // cards e painéis
-        surface2: '#191A1D',  // camada elevada (hover, inputs)
-        line: '#232427',      // bordas e divisores
+        base: '#0F1419',      // fundo principal, cinza escuro corporativo (estilo VCT)
+        surface: '#171D24',   // cards e painéis
+        surface2: '#1E252D',  // camada elevada (hover, inputs)
+        line: '#2A323C',      // bordas e divisores
         ink: '#EDEDED',       // texto principal
         muted: '#8A8A8E',     // texto secundário
         signal: '#FF6A1A',    // laranja — ação, links, marca
@@ -20,7 +20,7 @@ module.exports = {
         mono: ['var(--font-mono)'],
       },
       backgroundImage: {
-        'circuit-trace': "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 60 H40 V20 H80 V90 H120' stroke='%23232427' stroke-width='1' fill='none'/%3E%3Ccircle cx='40' cy='20' r='2.5' fill='%23232427'/%3E%3Ccircle cx='80' cy='90' r='2.5' fill='%23232427'/%3E%3C/svg%3E\")",
+        'circuit-trace': "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120' viewBox='0 0 120 120'%3E%3Cpath d='M0 60 H40 V20 H80 V90 H120' stroke='%232A323C' stroke-width='1' fill='none'/%3E%3Ccircle cx='40' cy='20' r='2.5' fill='%232A323C'/%3E%3Ccircle cx='80' cy='90' r='2.5' fill='%232A323C'/%3E%3C/svg%3E\")",
       },
     },
   },

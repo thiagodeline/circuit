@@ -1,24 +1,21 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { InscricaoForm } from '@/components/InscricaoForm';
-import { buscarTorneioPorSlug } from '@/lib/data';
+import { listarTorneios } from '@/lib/data';
 
 export default async function InscricaoPage({ params }: { params: { slug: string } }) {
-  const torneio = await buscarTorneioPorSlug(params.slug).catch(() => null);
-  if (!torneio) notFound();
+  const torneios = await listarTorneios().catch(() => []);
+  const abertos = torneios.filter((t) => t.status === 'inscricoes_abertas');
 
-  if (torneio.status !== 'inscricoes_abertas') {
+  if (abertos.length === 0) {
     return (
       <>
         <SiteHeader />
         <main className="mx-auto max-w-xl px-6 py-24 text-center">
-          <p className="text-muted">
-            As inscrições para <strong className="text-ink">{torneio.nome}</strong> não estão abertas no momento.
-          </p>
-          <Link href={`/torneios/${torneio.slug}`} className="btn-secondary mt-6 inline-flex">
-            Voltar ao torneio
+          <p className="text-muted">Não há torneios com inscrições abertas no momento.</p>
+          <Link href="/" className="btn-secondary mt-6 inline-flex">
+            Voltar à home
           </Link>
         </main>
         <SiteFooter />
@@ -26,11 +23,16 @@ export default async function InscricaoPage({ params }: { params: { slug: string
     );
   }
 
+  // Se o slug da URL corresponder a um torneio com inscrições abertas, ele vem
+  // pré-selecionado; senão, o formulário abre no primeiro torneio aberto da lista
+  // (o usuário pode trocar livremente pelo select).
+  const torneioInicial = abertos.find((t) => t.slug === params.slug) || abertos[0];
+
   return (
     <>
       <SiteHeader />
       <main>
-        <InscricaoForm torneio={torneio} />
+        <InscricaoForm torneiosAbertos={abertos} torneioInicialId={torneioInicial.id} />
       </main>
       <SiteFooter />
     </>

@@ -3,18 +3,16 @@ import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
-import { MatchRow } from '@/components/MatchRow';
 import { Bracket } from '@/components/Bracket';
 import { TorneioTabsClient } from '@/components/TorneioTabsClient';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
-import { ordenarPartidasPorData } from '@/lib/ordenar';
 
 export const revalidate = 30;
 
 const TABS = [
-  { key: 'visao-geral', label: 'Visão Geral' },
   { key: 'chaveamento', label: 'Chaveamento' },
-  { key: 'equipes', label: 'Equipes' },
+  { key: 'equipes', label: 'Equipes Inscritas' },
+  { key: 'regras', label: 'Regras / Premiação' },
 ];
 
 export default async function TorneioDetalhePage({
@@ -35,41 +33,8 @@ export default async function TorneioDetalhePage({
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
   const fases = Array.from(new Set(partidas.map((p) => p.fase)));
 
-  const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
-  const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
-
-  // --- Cada painel é montado uma única vez aqui no servidor e passado como
-  // conteúdo pronto para o componente client, que só alterna a visibilidade via
-  // CSS — nenhuma dessas árvores é desmontada/refeita ao trocar de aba.
-
-  const painelVisaoGeral = (
-    <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
-      <div className="space-y-8">
-        <div>
-          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
-          <p className="whitespace-pre-line text-muted">{torneio.descricao}</p>
-        </div>
-        {torneio.regras && (
-          <div>
-            <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Regulamento rápido</h2>
-            <p className="whitespace-pre-line text-muted">{torneio.regras}</p>
-          </div>
-        )}
-      </div>
-      <div>
-        <p className="eyebrow mb-4">Últimos resultados</p>
-        {partidasFinalizadas.length === 0 ? (
-          <p className="text-sm text-muted">Nenhum resultado registrado ainda.</p>
-        ) : (
-          <div className="space-y-2">
-            {partidasFinalizadas.map((p) => (
-              <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
-            ))}
-          </div>
-        )}
-      </div>
-    </div>
-  );
+  // A chave (Chaveamento) é a visão padrão/inicial, no lugar de "Visão Geral".
+  const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'chaveamento';
 
   const painelChaveamento = (
     <div>
@@ -83,6 +48,16 @@ export default async function TorneioDetalhePage({
 
   const painelEquipes = (
     <div>
+      {/* Botão de inscrição discreto — só aparece quando as inscrições estão abertas,
+          alocado aqui em vez do topo da página para não poluir o cabeçalho principal. */}
+      {torneio.status === 'inscricoes_abertas' && (
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-signal/20 bg-signal/5 px-5 py-4">
+          <p className="text-sm text-muted">Inscrições abertas para este torneio.</p>
+          <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary flex-shrink-0 py-2 text-xs">
+            Inscrever meu time
+          </Link>
+        </div>
+      )}
       {times.length === 0 ? (
         <p className="text-muted">Nenhum time inscrito ainda.</p>
       ) : (
@@ -117,17 +92,51 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
+  const painelRegras = (
+    <div className="max-w-2xl space-y-8">
+      <div>
+        <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
+        <p className="whitespace-pre-line text-muted">{torneio.descricao}</p>
+      </div>
+      {torneio.premiacao && (
+        <div>
+          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Premiação</h2>
+          <p className="text-signal">{torneio.premiacao}</p>
+        </div>
+      )}
+      {torneio.regras && (
+        <div>
+          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Regras</h2>
+          <p className="whitespace-pre-line text-muted">{torneio.regras}</p>
+        </div>
+      )}
+      {torneio.regulamentoUrl && (
+        <a
+          href={torneio.regulamentoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-secondary inline-flex items-center gap-2 text-xs"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+          </svg>
+          Baixar regulamento (PDF)
+        </a>
+      )}
+    </div>
+  );
+
   const panels: Record<string, React.ReactNode> = {
-    'visao-geral': painelVisaoGeral,
     chaveamento: painelChaveamento,
     equipes: painelEquipes,
+    regras: painelRegras,
   };
 
   return (
     <>
       <SiteHeader />
       <main>
-        {/* HERO IMERSIVO */}
+        {/* HERO IMERSIVO — sem o botão de inscrição, que agora vive na aba Equipes */}
         <section className="border-b border-white/10">
           <div className="relative overflow-hidden">
             {torneio.capa && (
@@ -146,19 +155,6 @@ export default async function TorneioDetalhePage({
                   <span>/</span>
                   <span className="text-ink">{torneio.nome}</span>
                 </nav>
-                {torneio.regulamentoUrl && (
-                  <a
-                    href={torneio.regulamentoUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn-secondary flex items-center gap-2 py-2 text-xs"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M12 3v12m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
-                    </svg>
-                    Regulamento
-                  </a>
-                )}
               </div>
 
               <div className="flex flex-col gap-8 pb-10 pt-16 sm:pt-24">
@@ -185,9 +181,13 @@ export default async function TorneioDetalhePage({
                     {torneio.nome}
                   </h1>
 
+                  {/* Inscrição discreta logo abaixo do título — só quando aberta */}
                   {torneio.status === 'inscricoes_abertas' && (
-                    <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary mt-5 inline-flex">
-                      Inscrever meu time
+                    <Link
+                      href={`/torneios/${torneio.slug}/inscricao`}
+                      className="mt-4 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-signal hover:underline"
+                    >
+                      Inscrever meu time →
                     </Link>
                   )}
 
@@ -209,17 +209,6 @@ export default async function TorneioDetalhePage({
                         {torneio.local}
                       </span>
                     )}
-                    {torneio.premiacao && (
-                      <span className="flex items-center gap-1.5 text-signal">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M8 21h8m-4-4v4M7 4h10v4a5 5 0 0 1-10 0V4Z"/><path d="M7 6H4a2 2 0 0 0 2 4M17 6h3a2 2 0 0 1-2 4"/></svg>
-                        {torneio.premiacao}
-                      </span>
-                    )}
-                    {torneio.valorInscricao ? (
-                      <span className="flex items-center gap-1.5">
-                        Inscrição: R$ {torneio.valorInscricao.toFixed(2)}
-                      </span>
-                    ) : null}
                   </div>
                 </div>
               </div>
