@@ -7,37 +7,11 @@ import { MatchRow } from '@/components/MatchRow';
 import { Bracket } from '@/components/Bracket';
 import { TorneioTabsClient } from '@/components/TorneioTabsClient';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
-import { calcularClassificacao } from '@/lib/classificacao';
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 
 export const revalidate = 30;
 
-function ehFaseDeGrupo(fase: string) {
-  return /grupo/i.test(fase);
-}
-
-// Extrai o número da rodada do texto da fase (ex: "Grupo A / Rodada 2" -> 2),
-// para ordenar todas as partidas da Rodada 1 antes das da Rodada 2, e assim por diante.
-function extrairNumeroRodada(fase: string): number {
-  const match = fase.match(/rodada\s*(\d+)/i);
-  return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
-}
-
-function ordenarFasesPorRodada(fasesLista: string[]): string[] {
-  return [...fasesLista].sort((a, b) => {
-    const diff = extrairNumeroRodada(a) - extrairNumeroRodada(b);
-    return diff !== 0 ? diff : a.localeCompare(b);
-  });
-}
-
-const TABS_GRUPOS_MATA_MATA = [
-  { key: 'visao-geral', label: 'Visão Geral' },
-  { key: 'grupos', label: 'Grupos' },
-  { key: 'chaveamento', label: 'Chaveamento' },
-  { key: 'equipes', label: 'Equipes' },
-];
-
-const TABS_APENAS_MATA_MATA = [
+const TABS = [
   { key: 'visao-geral', label: 'Visão Geral' },
   { key: 'chaveamento', label: 'Chaveamento' },
   { key: 'equipes', label: 'Equipes' },
@@ -53,23 +27,15 @@ export default async function TorneioDetalhePage({
   const torneio = await buscarTorneioPorSlug(params.slug).catch(() => null);
   if (!torneio) notFound();
 
-  const modo = torneio.modoTorneio || 'grupos_mata_mata';
-  const ehApenasMataMata = modo === 'apenas_mata_mata';
-
   const [times, partidas] = await Promise.all([
     listarTimesPorTorneio(torneio.id).catch(() => []),
     listarPartidasPorTorneio(torneio.id).catch(() => []),
   ]);
 
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
-  const gruposDeTimes = Array.from(new Set(times.map((t) => t.grupo).filter(Boolean))) as string[];
   const fases = Array.from(new Set(partidas.map((p) => p.fase)));
-  const fasesDeGrupo = ehApenasMataMata ? [] : ordenarFasesPorRodada(fases.filter(ehFaseDeGrupo));
-  const fasesMataMata = ehApenasMataMata ? fases : fases.filter((f) => !ehFaseDeGrupo(f));
 
-  const tabsDisponiveis = ehApenasMataMata ? TABS_APENAS_MATA_MATA : TABS_GRUPOS_MATA_MATA;
-  const tabInicial = tabsDisponiveis.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
-
+  const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
   const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
 
   // --- Cada painel é montado uma única vez aqui no servidor e passado como
@@ -105,99 +71,12 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
-  const painelGrupos = ehApenasMataMata ? null : (
-    <div className="space-y-12">
-      <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {gruposDeTimes.length === 0 && <p className="text-muted">Sem grupos definidos ainda.</p>}
-        {gruposDeTimes.map((grupo) => {
-          const timesDoGrupo = times.filter((t) => t.grupo === grupo);
-          const partidasDoGrupo = partidas.filter(
-            (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
-          );
-          const classificacao = calcularClassificacao(timesDoGrupo, partidasDoGrupo);
-
-          return (
-            <div key={grupo} className="card overflow-hidden">
-              <div className="border-b border-white/10 bg-white/[0.03] px-4 py-3">
-                <p className="font-mono text-xs font-semibold uppercase tracking-wider">{grupo}</p>
-              </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-xs text-muted">
-                    <th className="px-3 py-2 font-normal">Time</th>
-                    <th className="px-1 py-2 text-center font-normal">V</th>
-                    <th className="px-1 py-2 text-center font-normal">D</th>
-                    <th className="px-1 py-2 text-center font-normal">MV</th>
-                    <th className="px-1 py-2 text-center font-normal">MD</th>
-                    <th className="px-1 py-2 text-center font-normal">Saldo</th>
-                    <th className="px-2 py-2 text-center font-normal">P</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {classificacao.map((linha, i) => (
-                    <tr
-                      key={linha.time.id}
-                      className={`transition-colors hover:bg-white/5 ${i < 2 ? 'bg-signal/10' : ''}`}
-                    >
-                      <td className="max-w-[120px] truncate px-3 py-2 font-medium">
-                        <Link href={`/times/${linha.time.id}`} className="flex items-center gap-2 hover:text-signal">
-                          {linha.time.logo ? (
-                            <img
-                              src={linha.time.logo}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              className="h-5 w-5 flex-shrink-0 rounded-full object-cover"
-                            />
-                          ) : (
-                            <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-white/5 font-mono text-[9px] text-muted">
-                              {linha.time.tag.slice(0, 2)}
-                            </div>
-                          )}
-                          <span className="truncate">{linha.time.tag}</span>
-                        </Link>
-                      </td>
-                      <td className="px-1 py-2 text-center font-mono text-live">{linha.vitorias}</td>
-                      <td className="px-1 py-2 text-center font-mono text-alert">{linha.derrotas}</td>
-                      <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasVencidos}</td>
-                      <td className="px-1 py-2 text-center font-mono text-muted">{linha.mapasPerdidos}</td>
-                      <td className="px-1 py-2 text-center font-mono text-muted">
-                        {linha.saldo > 0 ? `+${linha.saldo}` : linha.saldo}
-                      </td>
-                      <td className="px-2 py-2 text-center font-mono font-semibold text-signal">{linha.pontos}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          );
-        })}
-      </div>
-
-      {fasesDeGrupo.length > 0 && (
-        <div className="space-y-8">
-          <h2 className="font-display text-xl font-semibold uppercase tracking-wide">Partidas da fase de grupos</h2>
-          {fasesDeGrupo.map((fase) => (
-            <div key={fase}>
-              <p className="eyebrow mb-3">{fase}</p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {ordenarPartidasPorData(partidas.filter((p) => p.fase === fase)).map((p) => (
-                  <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-
   const painelChaveamento = (
     <div>
-      {fasesMataMata.length === 0 ? (
+      {fases.length === 0 ? (
         <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
       ) : (
-        <Bracket fases={fasesMataMata} partidas={partidas} timesPorId={timesPorId} />
+        <Bracket fases={fases} partidas={partidas} timesPorId={timesPorId} />
       )}
     </div>
   );
@@ -230,7 +109,6 @@ export default async function TorneioDetalhePage({
               <div className="min-w-0">
                 <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
                 <p className="font-mono text-xs text-signal">{t.tag}</p>
-                {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
               </div>
             </Link>
           ))}
@@ -241,7 +119,6 @@ export default async function TorneioDetalhePage({
 
   const panels: Record<string, React.ReactNode> = {
     'visao-geral': painelVisaoGeral,
-    ...(painelGrupos ? { grupos: painelGrupos } : {}),
     chaveamento: painelChaveamento,
     equipes: painelEquipes,
   };
@@ -252,22 +129,17 @@ export default async function TorneioDetalhePage({
       <main>
         {/* HERO IMERSIVO */}
         <section className="border-b border-white/10">
-          {/* Wrapper do banner — a imagem e o overlay ficam contidos aqui, cobrindo só
-              a área do breadcrumb + título (como um hero), sem vazar para trás das abas */}
           <div className="relative overflow-hidden">
             {torneio.capa && (
               <div
                 className="absolute inset-0 bg-cover bg-center"
                 style={{ backgroundImage: `url(${torneio.capa})` }}
-                // fetchPriority ajuda o navegador a priorizar essa imagem de fundo,
-                // já que ela está sempre acima da dobra (visível assim que a página carrega)
                 data-fetchpriority="high"
               />
             )}
             <div className="absolute inset-0 bg-gradient-to-t from-base via-base/85 to-base/40" />
 
             <div className="relative mx-auto max-w-[1400px] px-6 pt-8">
-              {/* BREADCRUMB + REGULAMENTO */}
               <div className="flex flex-wrap items-center justify-between gap-4 pb-6">
                 <nav className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted">
                   <Link href="/" className="transition-colors hover:text-ink">Torneios</Link>
@@ -289,12 +161,13 @@ export default async function TorneioDetalhePage({
                 )}
               </div>
 
-              {/* BLOCO PRINCIPAL — o banner (torneio.capa) fica como fundo só desta área,
-                  atrás do título, ao invés de aparecer como miniatura ao lado */}
               <div className="flex flex-col gap-8 pb-10 pt-16 sm:pt-24">
                 <div className="min-w-0 flex-1">
                   <div className="mb-3 flex flex-wrap items-center gap-3">
                     <StatusBadge status={torneio.status} />
+                    {torneio.faseCircuito && (
+                      <span className="pill text-signal">{torneio.faseCircuito} {torneio.edicao}</span>
+                    )}
                     {torneio.dataInicio && (
                       <span className="pill text-muted">
                         {new Date(torneio.dataInicio).toLocaleDateString('pt-BR', {
@@ -318,7 +191,6 @@ export default async function TorneioDetalhePage({
                     </Link>
                   )}
 
-                  {/* INFOS COMPLEMENTARES COM ÍCONES */}
                   <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-xs text-muted">
                     {torneio.streamUrl && (
                       <a
@@ -343,10 +215,6 @@ export default async function TorneioDetalhePage({
                         {torneio.premiacao}
                       </span>
                     )}
-                    <span className="flex items-center gap-1.5">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 11.5 11 13.5 15 9"/><circle cx="12" cy="12" r="9"/></svg>
-                      Vitória = 3 pts
-                    </span>
                     {torneio.valorInscricao ? (
                       <span className="flex items-center gap-1.5">
                         Inscrição: R$ {torneio.valorInscricao.toFixed(2)}
@@ -358,12 +226,10 @@ export default async function TorneioDetalhePage({
             </div>
           </div>
 
-          {/* ABAS — fora do wrapper do banner, com fundo normal da página (sem imagem atrás).
-              Troca client-side, sem recarregar a página nem refazer fetch. */}
           <div className="mx-auto max-w-[1400px] px-6 pb-4">
             <TorneioTabsClient
               slug={torneio.slug}
-              tabs={tabsDisponiveis}
+              tabs={TABS}
               initialTab={tabInicial}
               panels={panels}
             />

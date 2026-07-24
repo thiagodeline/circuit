@@ -1,14 +1,15 @@
 export type StatusTorneio = 'em_breve' | 'inscricoes_abertas' | 'em_andamento' | 'finalizado';
 
-export type ModoTorneio = 'grupos_mata_mata' | 'apenas_mata_mata';
-
 export interface Torneio {
   id: string;
   slug: string;
   nome: string;
   descricao: string;
   status: StatusTorneio;
-  modoTorneio?: ModoTorneio; // ausência = tratado como 'grupos_mata_mata' (compatibilidade com torneios antigos)
+  // Todo torneio é eliminatória simples (mata-mata) — não existe mais fase de grupos.
+  faseCircuito?: FaseCircuito; // qual etapa da cadeia oficial este torneio representa
+  edicao?: string; // ex: "#1", "#2" — usado quando a fase se repete (Qualifiers)
+  etapaAtiva?: boolean; // marca esta como a etapa em destaque no menu/home (só um torneio por vez)
   formato: string; // descrição livre, ex: "8 times · 2 grupos · playoffs"
   dataInicio: string; // ISO date
   dataFim?: string;

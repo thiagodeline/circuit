@@ -5,14 +5,16 @@ import { RequireAuth } from '@/components/RequireAuth';
 import { AdminSidebar } from '@/components/AdminSidebar';
 import { StatusBadge } from '@/components/StatusBadge';
 import { listarTorneios, criarTorneio, atualizarTorneio, excluirTorneio } from '@/lib/data';
-import { Torneio, StatusTorneio, ModoTorneio } from '@/types';
+import { Torneio, StatusTorneio, FaseCircuito, FASES_CIRCUITO } from '@/types';
 
 const vazio = {
   slug: '',
   nome: '',
   descricao: '',
   status: 'em_breve' as StatusTorneio,
-  modoTorneio: 'grupos_mata_mata' as ModoTorneio,
+  faseCircuito: '' as FaseCircuito | '',
+  edicao: '',
+  etapaAtiva: false,
   formato: '',
   dataInicio: '',
   dataFim: '',
@@ -47,7 +49,9 @@ export default function AdminTorneiosPage() {
       nome: t.nome,
       descricao: t.descricao,
       status: t.status,
-      modoTorneio: t.modoTorneio || 'grupos_mata_mata',
+      faseCircuito: t.faseCircuito || '',
+      edicao: t.edicao || '',
+      etapaAtiva: Boolean(t.etapaAtiva),
       formato: t.formato,
       dataInicio: t.dataInicio,
       dataFim: t.dataFim || '',
@@ -76,12 +80,26 @@ export default function AdminTorneiosPage() {
       } else {
         delete dados.valorInscricao; // sem valor = inscrição gratuita
       }
+      if (!dados.faseCircuito) delete dados.faseCircuito;
+      if (!dados.edicao) delete dados.edicao;
 
+      let novoId = editando;
       if (editando) {
         await atualizarTorneio(editando, dados);
       } else {
-        await criarTorneio(dados);
+        const ref = await criarTorneio(dados);
+        novoId = ref.id;
       }
+
+      // Só um torneio pode ser "etapa atual" por vez — desmarca os demais.
+      if (dados.etapaAtiva && novoId) {
+        await Promise.all(
+          torneios
+            .filter((t) => t.id !== novoId && t.etapaAtiva)
+            .map((t) => atualizarTorneio(t.id, { etapaAtiva: false }))
+        );
+      }
+
       cancelar();
       await carregar();
     } finally {
@@ -206,19 +224,40 @@ export default function AdminTorneiosPage() {
                 </select>
               </div>
               <div>
-                <label className="label">Modo de torneio</label>
+                <label className="label">Etapa do Circuito</label>
                 <select
                   className="input"
-                  value={form.modoTorneio}
-                  onChange={(e) => setForm({ ...form, modoTorneio: e.target.value as ModoTorneio })}
+                  value={form.faseCircuito}
+                  onChange={(e) => setForm({ ...form, faseCircuito: e.target.value as FaseCircuito | '' })}
                 >
-                  <option value="grupos_mata_mata">Fase de Grupos + Mata-Mata</option>
-                  <option value="apenas_mata_mata">Apenas Mata-Mata</option>
+                  <option value="">Sem etapa vinculada</option>
+                  {FASES_CIRCUITO.map((f) => (
+                    <option key={f} value={f}>{f}</option>
+                  ))}
                 </select>
                 <p className="mt-1 text-xs text-muted">
-                  Define as abas exibidas na página pública do torneio (a aba "Grupos" some se for só mata-mata).
+                  Vincula este torneio ao menu "Etapas" do site e à linha do tempo da home.
                 </p>
               </div>
+              <div>
+                <label className="label">Edição (opcional)</label>
+                <input
+                  className="input"
+                  value={form.edicao}
+                  onChange={(e) => setForm({ ...form, edicao: e.target.value })}
+                  placeholder="#1, #2..."
+                />
+                <p className="mt-1 text-xs text-muted">Use para diferenciar edições repetidas, ex: "Circuit Qualifier #1".</p>
+              </div>
+              <label className="flex items-center gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  checked={form.etapaAtiva}
+                  onChange={(e) => setForm({ ...form, etapaAtiva: e.target.checked })}
+                  className="h-4 w-4 rounded border-white/20 bg-white/5"
+                />
+                Etapa atual (destaca este torneio no menu e na home — desmarca automaticamente as demais)
+              </label>
               <div>
                 <label className="label">Data de início</label>
                 <input
