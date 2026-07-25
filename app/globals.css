@@ -28,16 +28,7 @@
     position: relative;
   }
   /* Glow ambiente fixo no fundo — dá profundidade ao dark mode sem poluir o conteúdo */
-  body::after {
-    content: '';
-    position: fixed;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(600px circle at 15% 0%, rgba(0, 96, 255, 0.12), transparent 60%),
-      radial-gradient(500px circle at 85% 20%, rgba(31, 229, 192, 0.06), transparent 60%);
-  }
+  /* Fundo chapado/neutro, sem gradiente colorido — igual ao estilo VCT */
   body::before {
     content: '';
     position: fixed;

@@ -31,11 +31,28 @@ export async function SiteHeader() {
       .sort((a, b) => (a.dataInicio || '').localeCompare(b.dataInicio || '')),
   }));
 
-  function statusFase(edicoes: Torneio[]): { label: string; className: string } {
-    if (edicoes.length === 0) return { label: 'Em breve', className: 'text-muted' };
-    if (edicoes.some((t) => t.status === 'em_andamento')) return { label: 'Em andamento', className: 'text-live' };
-    if (edicoes.every((t) => t.status === 'finalizado')) return { label: 'Concluído', className: 'text-muted' };
-    return { label: 'Em breve', className: 'text-signal' };
+  function statusFase(edicoes: Torneio[]): 'concluido' | 'atual' | 'futuro' {
+    if (edicoes.some((t) => t.etapaAtiva || t.status === 'em_andamento')) return 'atual';
+    if (edicoes.length > 0 && edicoes.every((t) => t.status === 'finalizado')) return 'concluido';
+    return 'futuro';
+  }
+
+  function IconeStatus({ status }: { status: 'concluido' | 'atual' | 'futuro' }) {
+    if (status === 'concluido') {
+      return (
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-live text-base">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="m5 13 4 4L19 7" /></svg>
+        </span>
+      );
+    }
+    if (status === 'atual') {
+      return (
+        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 border-signal">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-signal" />
+        </span>
+      );
+    }
+    return <span className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-white/20" />;
   }
 
   return (
@@ -67,41 +84,61 @@ export async function SiteHeader() {
               Etapas
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
             </button>
-            <div className="invisible absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100">
-              <div className="rounded-2xl border border-white/10 bg-base/95 p-1.5 backdrop-blur-xl">
-                {torneiosPorFase.map(({ fase, edicoes }) => {
-                  const st = statusFase(edicoes);
-                  const temFlyout = edicoes.length > 0;
-                  return (
-                    <div key={fase} className="group/item relative">
-                      <div
-                        className={`flex items-center justify-between gap-2 rounded-xl px-3 py-2.5 text-sm transition-colors ${
-                          temFlyout ? 'cursor-pointer hover:bg-white/5' : 'opacity-50'
-                        }`}
-                      >
-                        <span className="font-medium">{fase}</span>
-                        <span className={`font-mono text-[10px] uppercase tracking-wider ${st.className}`}>{st.label}</span>
-                      </div>
-
-                      {/* FLYOUT LATERAL — lista as edições daquela fase */}
-                      {temFlyout && (
-                        <div className="invisible absolute left-full top-0 z-50 w-56 pl-2 opacity-0 transition-opacity duration-150 group-hover/item:visible group-hover/item:opacity-100">
-                          <div className="rounded-2xl border border-white/10 bg-base/95 p-1.5 backdrop-blur-xl">
-                            {edicoes.map((t) => (
-                              <Link
-                                key={t.id}
-                                href={`/torneios/${t.slug}`}
-                                className="block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-white/5 hover:text-signal"
-                              >
-                                {rotuloEdicao(t)}
-                              </Link>
-                            ))}
-                          </div>
+            <div className="invisible absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100">
+              <div className="rounded-2xl border border-white/10 bg-base/95 p-4 backdrop-blur-xl">
+                <div className="space-y-0">
+                  {torneiosPorFase.map(({ fase, edicoes }, i) => {
+                    const status = statusFase(edicoes);
+                    const temFlyout = edicoes.length > 0;
+                    const ultimo = i === torneiosPorFase.length - 1;
+                    return (
+                      <div key={fase} className="group/item relative flex gap-3">
+                        {/* coluna do ícone + linha vertical conectando os itens */}
+                        <div className="flex flex-col items-center">
+                          <IconeStatus status={status} />
+                          {!ultimo && <span className="my-1 w-px flex-1 bg-white/15" />}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+
+                        <div className={`min-w-0 flex-1 pb-5 ${temFlyout ? 'cursor-pointer' : 'opacity-50'}`}>
+                          <p className={`font-display text-sm font-semibold uppercase tracking-wide ${status === 'atual' ? 'text-white' : 'text-muted'}`}>
+                            {fase}
+                          </p>
+                          <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-muted/70">
+                            {status === 'concluido' ? 'Concluída' : status === 'atual' ? 'Em andamento' : 'Em breve'}
+                          </p>
+                        </div>
+
+                        {/* FLYOUT LATERAL — lista as edições daquela fase */}
+                        {temFlyout && (
+                          <div className="invisible absolute left-full top-0 z-50 w-56 pl-2 opacity-0 transition-opacity duration-150 group-hover/item:visible group-hover/item:opacity-100">
+                            <div className="rounded-2xl border border-white/10 bg-base/95 p-1.5 backdrop-blur-xl">
+                              {edicoes.map((t) => (
+                                <Link
+                                  key={t.id}
+                                  href={`/torneios/${t.slug}`}
+                                  className="block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-white/5 hover:text-signal"
+                                >
+                                  {rotuloEdicao(t)}
+                                </Link>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* SAIBA MAIS */}
+                <div className="mt-2 border-t border-white/10 pt-3">
+                  <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted">Saiba mais</p>
+                  <Link
+                    href="/manual-circuit"
+                    className="block rounded-xl px-3 py-2 text-sm font-medium transition-colors hover:bg-white/5 hover:text-signal"
+                  >
+                    Manual Circuit
+                  </Link>
+                </div>
               </div>
             </div>
           </div>

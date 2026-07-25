@@ -81,16 +81,16 @@ export default async function HomePage() {
                 const periodo = formatarPeriodo(representante);
                 const conteudo = (
                   <div
-                    className={`card p-4 transition-colors ${
+                    className={`relative overflow-hidden rounded-r-xl border-l-4 px-4 py-3.5 transition-colors ${
                       ehAtual
-                        ? 'border-signal/50 bg-signal/[0.06] shadow-[0_0_24px_-4px_rgba(0,96,255,0.4)]'
+                        ? 'border-signal bg-gradient-to-r from-signal/15 to-transparent'
                         : representante
-                        ? 'hover:border-white/20'
-                        : 'opacity-40'
+                        ? 'border-transparent bg-white/[0.02] hover:bg-white/[0.04]'
+                        : 'border-transparent bg-white/[0.02] opacity-40'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`font-display text-sm font-semibold uppercase tracking-wide ${ehAtual ? 'text-white' : ''}`}>
+                      <p className={`font-display text-sm font-semibold uppercase tracking-wide ${ehAtual ? 'text-white' : 'text-muted'}`}>
                         {fase}
                       </p>
                       {concluida && (
@@ -100,7 +100,9 @@ export default async function HomePage() {
                       )}
                       {ehAtual && <span className="h-2 w-2 flex-shrink-0 animate-pulse rounded-full bg-signal" />}
                     </div>
-                    {periodo && <p className="mt-1 font-mono text-xs text-muted">{periodo}</p>}
+                    {periodo && (
+                      <p className={`mt-1 font-mono text-xs ${ehAtual ? 'text-ink/70' : 'text-muted/70'}`}>{periodo}</p>
+                    )}
                   </div>
                 );
                 return representante ? (
