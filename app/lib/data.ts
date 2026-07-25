@@ -11,7 +11,7 @@ import {
   orderBy,
 } from 'firebase/firestore';
 import { db } from './firebase';
-import { Torneio, Time, Partida, Noticia, Inscricao } from '@/types';
+import { Torneio, Time, Partida, Noticia, Inscricao, PontosCircuito } from '@/types';
 
 // --- Torneios ---
 
@@ -126,4 +126,29 @@ export async function atualizarInscricao(id: string, dados: Partial<Inscricao>) 
 
 export async function excluirInscricao(id: string) {
   return deleteDoc(doc(db, 'inscricoes', id));
+}
+
+// --- Pontos de Circuito (acumulados por torneio da cadeia oficial) ---
+// O ranking nunca é uma posição fixa: é sempre a soma desses lançamentos por time.
+
+export async function listarTodosOsTimes(): Promise<Time[]> {
+  const snap = await getDocs(collection(db, 'times'));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Time);
+}
+
+export async function listarPontosCircuito(): Promise<PontosCircuito[]> {
+  const snap = await getDocs(query(collection(db, 'pontos_circuito'), orderBy('criadoEm', 'desc')));
+  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as PontosCircuito);
+}
+
+export async function lancarPontosCircuito(dados: Omit<PontosCircuito, 'id' | 'criadoEm'>) {
+  return addDoc(collection(db, 'pontos_circuito'), { ...dados, criadoEm: Date.now() });
+}
+
+export async function atualizarPontosCircuito(id: string, dados: Partial<PontosCircuito>) {
+  return updateDoc(doc(db, 'pontos_circuito', id), dados);
+}
+
+export async function excluirPontosCircuito(id: string) {
+  return deleteDoc(doc(db, 'pontos_circuito', id));
 }

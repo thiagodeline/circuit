@@ -3,7 +3,7 @@ import Image from 'next/image';
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-surface">
+    <footer className="border-t border-white/10 bg-white/[0.02] backdrop-blur-md">
       <div className="mx-auto max-w-6xl px-6 py-14">
         <div className="grid gap-10 sm:grid-cols-3">
           <div>
@@ -19,9 +19,9 @@ export function SiteFooter() {
           <div>
             <p className="eyebrow mb-4">Navegação</p>
             <ul className="space-y-2 text-sm text-muted">
-              <li><Link href="/torneios" className="transition hover:text-ink">Torneios</Link></li>
-              <li><Link href="/times" className="transition hover:text-ink">Times</Link></li>
-              <li><Link href="/noticias" className="transition hover:text-ink">Notícias</Link></li>
+              <li><Link href="/" className="transition-colors hover:text-ink">Torneios</Link></li>
+              <li><Link href="/ranking" className="transition-colors hover:text-ink">Ranking</Link></li>
+              <li><Link href="/noticias" className="transition-colors hover:text-ink">Notícias</Link></li>
             </ul>
           </div>
 
@@ -33,7 +33,7 @@ export function SiteFooter() {
                   href="https://discord.com/invite/PASRYsBsAG"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="transition hover:text-ink"
+                  className="transition-colors hover:text-ink"
                 >
                   Discord oficial
                 </a>
@@ -42,7 +42,7 @@ export function SiteFooter() {
           </div>
         </div>
 
-        <div className="mt-12 flex flex-col gap-2 border-t border-line pt-6 font-mono text-xs uppercase tracking-wider text-muted sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-12 flex flex-col gap-2 border-t border-white/10 pt-6 font-mono text-xs uppercase tracking-wider text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Circuit — Organização de torneios de Valorant</p>
           <p>Temporada atual: Circuit Zen</p>
         </div>
