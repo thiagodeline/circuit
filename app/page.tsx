@@ -83,14 +83,14 @@ export default async function HomePage() {
                   <div
                     className={`card p-4 transition-colors ${
                       ehAtual
-                        ? 'border-signal/60 bg-signal/10 shadow-[0_0_24px_-4px_rgba(255,106,26,0.35)]'
+                        ? 'border-signal/50 bg-signal/[0.06] shadow-[0_0_24px_-4px_rgba(0,96,255,0.4)]'
                         : representante
                         ? 'hover:border-white/20'
                         : 'opacity-40'
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className={`font-display text-sm font-semibold uppercase tracking-wide ${ehAtual ? 'text-signal' : ''}`}>
+                      <p className={`font-display text-sm font-semibold uppercase tracking-wide ${ehAtual ? 'text-white' : ''}`}>
                         {fase}
                       </p>
                       {concluida && (
