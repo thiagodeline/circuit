@@ -5,7 +5,7 @@ import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Bracket } from '@/components/Bracket';
 import { TorneioTabsClient } from '@/components/TorneioTabsClient';
-import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
+import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio, listarTorneios } from '@/lib/data';
 
 export const revalidate = 30;
 
@@ -25,10 +25,29 @@ export default async function TorneioDetalhePage({
   const torneio = await buscarTorneioPorSlug(params.slug).catch(() => null);
   if (!torneio) notFound();
 
-  const [times, partidas] = await Promise.all([
+  const [times, partidas, todosOsTorneios] = await Promise.all([
     listarTimesPorTorneio(torneio.id).catch(() => []),
     listarPartidasPorTorneio(torneio.id).catch(() => []),
+    listarTorneios().catch(() => []),
   ]);
+
+  // Sidebar fixa com as 2 etapas do ciclo — Qualifier e Masters, cada uma com
+  // sua contagem de vagas e link pro torneio correspondente (se já cadastrado).
+  const ETAPAS_SIDEBAR = [
+    {
+      fase: 'Circuit Qualifier' as const,
+      emoji: '🟢',
+      vagas: '8 Vagas',
+    },
+    {
+      fase: 'Circuit Masters' as const,
+      emoji: '👑',
+      vagas: '8 Vagas — Top 4 Qualifier + 4 Direct Invites',
+    },
+  ].map((e) => ({
+    ...e,
+    torneio: todosOsTorneios.find((t) => t.faseCircuito === e.fase),
+  }));
 
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
   const fases = Array.from(new Set(partidas.map((p) => p.fase)));
@@ -215,13 +234,43 @@ export default async function TorneioDetalhePage({
             </div>
           </div>
 
-          <div className="mx-auto max-w-[1400px] px-6 pb-4">
-            <TorneioTabsClient
-              slug={torneio.slug}
-              tabs={TABS}
-              initialTab={tabInicial}
-              panels={panels}
-            />
+          <div className="mx-auto max-w-[1400px] px-6 pb-10">
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
+              {/* SIDEBAR ESQUERDA — as 2 etapas fixas do ciclo */}
+              <aside className="space-y-2">
+                <p className="eyebrow mb-1">Etapas do ciclo</p>
+                {ETAPAS_SIDEBAR.map((e) => {
+                  const ativa = e.torneio?.slug === torneio.slug;
+                  const conteudo = (
+                    <div
+                      className={`card p-4 transition-colors ${
+                        ativa ? 'border-signal/60 bg-signal/[0.07]' : e.torneio ? 'hover:bg-white/5' : 'opacity-50'
+                      }`}
+                    >
+                      <p className={`font-display text-sm font-semibold uppercase tracking-wide ${ativa ? 'text-white' : 'text-muted'}`}>
+                        {e.emoji} {e.fase.replace('Circuit ', '').toUpperCase()}
+                        {e.torneio?.edicao ? ` ${e.torneio.edicao}` : e.fase === 'Circuit Qualifier' ? ' #1' : ''}
+                      </p>
+                      <p className="mt-1 font-mono text-[10px] text-muted">{e.vagas}</p>
+                    </div>
+                  );
+                  return e.torneio ? (
+                    <Link key={e.fase} href={`/torneios/${e.torneio.slug}`}>{conteudo}</Link>
+                  ) : (
+                    <div key={e.fase}>{conteudo}</div>
+                  );
+                })}
+              </aside>
+
+              <div className="min-w-0">
+                <TorneioTabsClient
+                  slug={torneio.slug}
+                  tabs={TABS}
+                  initialTab={tabInicial}
+                  panels={panels}
+                />
+              </div>
+            </div>
           </div>
         </section>
       </main>

@@ -41,7 +41,7 @@ export function TorneioTabsClient({ slug, tabs, initialTab, panels }: Props) {
             onClick={() => selecionar(t.key)}
             className={`flex-shrink-0 rounded-xl px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider transition-colors duration-200 ease-in-out ${
               ativa === t.key
-                ? 'bg-gradient-to-r from-signal to-blue-700 text-white'
+                ? 'bg-gradient-to-r from-signal to-red-700 text-white'
                 : 'text-muted hover:bg-white/5 hover:text-ink'
             }`}
           >
