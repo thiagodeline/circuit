@@ -3,16 +3,19 @@ import { notFound } from 'next/navigation';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
+import { MatchRow } from '@/components/MatchRow';
 import { Bracket } from '@/components/Bracket';
 import { TorneioTabsClient } from '@/components/TorneioTabsClient';
-import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio, listarTorneios } from '@/lib/data';
+import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
+import { ordenarPartidasPorData } from '@/lib/ordenar';
 
 export const revalidate = 30;
 
 const TABS = [
-  { key: 'chaveamento', label: 'Chaveamento' },
-  { key: 'equipes', label: 'Equipes Inscritas' },
-  { key: 'regras', label: 'Regras / Premiação' },
+  { key: 'visao-geral', label: 'Visão Geral' },
+  { key: 'equipes', label: 'Times Inscritos' },
+  { key: 'chaveamento', label: 'Chaveamento / Brackets' },
+  { key: 'regulamento', label: 'Regulamento' },
 ];
 
 export default async function TorneioDetalhePage({
@@ -25,58 +28,49 @@ export default async function TorneioDetalhePage({
   const torneio = await buscarTorneioPorSlug(params.slug).catch(() => null);
   if (!torneio) notFound();
 
-  const [times, partidas, todosOsTorneios] = await Promise.all([
+  const [times, partidas] = await Promise.all([
     listarTimesPorTorneio(torneio.id).catch(() => []),
     listarPartidasPorTorneio(torneio.id).catch(() => []),
-    listarTorneios().catch(() => []),
   ]);
-
-  // Sidebar fixa com as 2 etapas do ciclo — Qualifier e Masters, cada uma com
-  // sua contagem de vagas e link pro torneio correspondente (se já cadastrado).
-  const ETAPAS_SIDEBAR = [
-    {
-      fase: 'Circuit Qualifier' as const,
-      emoji: '🟢',
-      vagas: '8 Vagas',
-    },
-    {
-      fase: 'Circuit Masters' as const,
-      emoji: '👑',
-      vagas: '8 Vagas — Top 4 Qualifier + 4 Direct Invites',
-    },
-  ].map((e) => ({
-    ...e,
-    torneio: todosOsTorneios.find((t) => t.faseCircuito === e.fase),
-  }));
 
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
   const fases = Array.from(new Set(partidas.map((p) => p.fase)));
+  const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
+  const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
 
-  // A chave (Chaveamento) é a visão padrão/inicial, no lugar de "Visão Geral".
-  const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'chaveamento';
-
-  const painelChaveamento = (
-    <div>
-      {fases.length === 0 ? (
-        <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
-      ) : (
-        <Bracket fases={fases} partidas={partidas} timesPorId={timesPorId} />
-      )}
+  const painelVisaoGeral = (
+    <div className="grid gap-10 lg:grid-cols-[1fr_320px]">
+      <div className="space-y-8">
+        <div>
+          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
+          <p className="whitespace-pre-line text-muted">{torneio.descricao}</p>
+        </div>
+        {torneio.status === 'inscricoes_abertas' && (
+          <div className="flex items-center justify-between gap-4 rounded-2xl border border-signal/20 bg-signal/5 px-5 py-4">
+            <p className="text-sm text-muted">Inscrições abertas para este torneio.</p>
+            <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary flex-shrink-0 py-2 text-xs">
+              Inscrever meu time
+            </Link>
+          </div>
+        )}
+      </div>
+      <div>
+        <p className="eyebrow mb-4">Últimos resultados</p>
+        {partidasFinalizadas.length === 0 ? (
+          <p className="text-sm text-muted">Nenhum resultado registrado ainda.</p>
+        ) : (
+          <div className="space-y-2">
+            {partidasFinalizadas.map((p) => (
+              <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 
   const painelEquipes = (
     <div>
-      {/* Botão de inscrição discreto — só aparece quando as inscrições estão abertas,
-          alocado aqui em vez do topo da página para não poluir o cabeçalho principal. */}
-      {torneio.status === 'inscricoes_abertas' && (
-        <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl border border-signal/20 bg-signal/5 px-5 py-4">
-          <p className="text-sm text-muted">Inscrições abertas para este torneio.</p>
-          <Link href={`/torneios/${torneio.slug}/inscricao`} className="btn-primary flex-shrink-0 py-2 text-xs">
-            Inscrever meu time
-          </Link>
-        </div>
-      )}
       {times.length === 0 ? (
         <p className="text-muted">Nenhum time inscrito ainda.</p>
       ) : (
@@ -111,12 +105,18 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
-  const painelRegras = (
+  const painelChaveamento = (
+    <div>
+      {fases.length === 0 ? (
+        <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
+      ) : (
+        <Bracket fases={fases} partidas={partidas} timesPorId={timesPorId} />
+      )}
+    </div>
+  );
+
+  const painelRegulamento = (
     <div className="max-w-2xl space-y-8">
-      <div>
-        <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Sobre o torneio</h2>
-        <p className="whitespace-pre-line text-muted">{torneio.descricao}</p>
-      </div>
       {torneio.premiacao && (
         <div>
           <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Premiação</h2>
@@ -142,20 +142,23 @@ export default async function TorneioDetalhePage({
           Baixar regulamento (PDF)
         </a>
       )}
+      {!torneio.premiacao && !torneio.regras && !torneio.regulamentoUrl && (
+        <p className="text-muted">Regulamento ainda não publicado.</p>
+      )}
     </div>
   );
 
   const panels: Record<string, React.ReactNode> = {
-    chaveamento: painelChaveamento,
+    'visao-geral': painelVisaoGeral,
     equipes: painelEquipes,
-    regras: painelRegras,
+    chaveamento: painelChaveamento,
+    regulamento: painelRegulamento,
   };
 
   return (
     <>
       <SiteHeader />
       <main>
-        {/* HERO IMERSIVO — sem o botão de inscrição, que agora vive na aba Equipes */}
         <section className="border-b border-white/10">
           <div className="relative overflow-hidden">
             {torneio.capa && (
@@ -168,13 +171,11 @@ export default async function TorneioDetalhePage({
             <div className="absolute inset-0 bg-gradient-to-t from-base via-base/85 to-base/40" />
 
             <div className="relative mx-auto max-w-[1400px] px-6 pt-8">
-              <div className="flex flex-wrap items-center justify-between gap-4 pb-6">
-                <nav className="flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-muted">
-                  <Link href="/" className="transition-colors hover:text-ink">Torneios</Link>
-                  <span>/</span>
-                  <span className="text-ink">{torneio.nome}</span>
-                </nav>
-              </div>
+              <nav className="flex items-center gap-2 pb-6 font-mono text-xs uppercase tracking-wider text-muted">
+                <Link href="/torneios" className="transition-colors hover:text-ink">Torneios</Link>
+                <span>/</span>
+                <span className="text-ink">{torneio.nome}</span>
+              </nav>
 
               <div className="flex flex-col gap-8 pb-10 pt-16 sm:pt-24">
                 <div className="min-w-0 flex-1">
@@ -200,16 +201,6 @@ export default async function TorneioDetalhePage({
                     {torneio.nome}
                   </h1>
 
-                  {/* Inscrição discreta logo abaixo do título — só quando aberta */}
-                  {torneio.status === 'inscricoes_abertas' && (
-                    <Link
-                      href={`/torneios/${torneio.slug}/inscricao`}
-                      className="mt-4 inline-flex items-center gap-1.5 font-mono text-xs uppercase tracking-wider text-signal hover:underline"
-                    >
-                      Inscrever meu time →
-                    </Link>
-                  )}
-
                   <div className="mt-6 flex flex-wrap items-center gap-x-6 gap-y-3 font-mono text-xs text-muted">
                     {torneio.streamUrl && (
                       <a
@@ -234,43 +225,8 @@ export default async function TorneioDetalhePage({
             </div>
           </div>
 
-          <div className="mx-auto max-w-[1400px] px-6 pb-10">
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-[240px_1fr]">
-              {/* SIDEBAR ESQUERDA — as 2 etapas fixas do ciclo */}
-              <aside className="space-y-2">
-                <p className="eyebrow mb-1">Etapas do ciclo</p>
-                {ETAPAS_SIDEBAR.map((e) => {
-                  const ativa = e.torneio?.slug === torneio.slug;
-                  const conteudo = (
-                    <div
-                      className={`card p-4 transition-colors ${
-                        ativa ? 'border-signal/60 bg-signal/[0.07]' : e.torneio ? 'hover:bg-white/5' : 'opacity-50'
-                      }`}
-                    >
-                      <p className={`font-display text-sm font-semibold uppercase tracking-wide ${ativa ? 'text-white' : 'text-muted'}`}>
-                        {e.emoji} {e.fase.replace('Circuit ', '').toUpperCase()}
-                        {e.torneio?.edicao ? ` ${e.torneio.edicao}` : e.fase === 'Circuit Qualifier' ? ' #1' : ''}
-                      </p>
-                      <p className="mt-1 font-mono text-[10px] text-muted">{e.vagas}</p>
-                    </div>
-                  );
-                  return e.torneio ? (
-                    <Link key={e.fase} href={`/torneios/${e.torneio.slug}`}>{conteudo}</Link>
-                  ) : (
-                    <div key={e.fase}>{conteudo}</div>
-                  );
-                })}
-              </aside>
-
-              <div className="min-w-0">
-                <TorneioTabsClient
-                  slug={torneio.slug}
-                  tabs={TABS}
-                  initialTab={tabInicial}
-                  panels={panels}
-                />
-              </div>
-            </div>
+          <div className="mx-auto max-w-[1400px] px-6 pb-4">
+            <TorneioTabsClient slug={torneio.slug} tabs={TABS} initialTab={tabInicial} panels={panels} />
           </div>
         </section>
       </main>

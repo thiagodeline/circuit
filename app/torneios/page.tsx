@@ -3,111 +3,69 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
 import { listarTorneios } from '@/lib/data';
-import { Torneio } from '@/types';
+import { FASES_CIRCUITO, Torneio } from '@/types';
 
 export const revalidate = 60;
 
-function TorneioCard({ t, destaque = false }: { t: Torneio; destaque?: boolean }) {
-  return (
-    <Link
-      href={`/torneios/${t.slug}`}
-      className={`card group overflow-hidden transition hover:border-signal/50 ${destaque ? 'md:col-span-2' : ''}`}
-    >
-      <div className={`w-full bg-surface2 ${destaque ? 'aspect-[21/8]' : 'aspect-[21/9]'}`}>
-        {t.capa && <img src={t.capa} alt={t.nome} className="h-full w-full object-cover" />}
-      </div>
-      <div className="p-6">
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <StatusBadge status={t.status} />
-          <span className="rounded-full border border-line px-2.5 py-1 font-mono text-xs text-muted">
-            Grupos + Playoffs
-          </span>
-        </div>
-        <h3 className={`font-display font-semibold group-hover:text-signal ${destaque ? 'text-2xl' : 'text-xl'}`}>
-          {t.nome}
-        </h3>
-        <p className="mt-2 line-clamp-2 text-sm text-muted">{t.descricao}</p>
-        <div className="mt-4 flex flex-wrap gap-x-5 gap-y-1 font-mono text-xs text-muted">
-          {t.dataInicio && <span>{new Date(t.dataInicio).toLocaleDateString('pt-BR')}</span>}
-          {t.local && <span>{t.local}</span>}
-          {t.premiacao && <span className="text-signal">{t.premiacao}</span>}
-        </div>
-      </div>
-    </Link>
-  );
-}
+export default async function TorneiosPage({ searchParams }: { searchParams: { categoria?: string } }) {
+  const torneios = await listarTorneios().catch(() => []);
+  const categoriaAtiva = FASES_CIRCUITO.includes(searchParams.categoria as any)
+    ? (searchParams.categoria as Torneio['faseCircuito'])
+    : undefined;
 
-export default async function TorneiosPage() {
-  let torneios: Torneio[] = [];
-  try {
-    torneios = await listarTorneios();
-  } catch {}
-
-  const emAndamento = torneios.filter((t) => t.status === 'em_andamento');
-  const inscricoesAbertas = torneios.filter((t) => t.status === 'inscricoes_abertas');
-  const emBreve = torneios.filter((t) => t.status === 'em_breve');
-  const finalizados = torneios.filter((t) => t.status === 'finalizado');
-
-  const destaque = emAndamento[0] || inscricoesAbertas[0];
-  const resto = torneios.filter((t) => t.id !== destaque?.id);
+  const filtrados = categoriaAtiva ? torneios.filter((t) => t.faseCircuito === categoriaAtiva) : torneios;
 
   return (
     <>
       <SiteHeader />
-      <main>
-        <section className="border-b border-line bg-circuit-trace bg-[length:120px_120px]">
-          <div className="mx-auto max-w-6xl px-6 py-16">
-            <p className="eyebrow mb-2">Todos os campeonatos</p>
-            <h1 className="font-display text-4xl font-semibold md:text-5xl">Torneios</h1>
-            <p className="mt-3 max-w-xl text-muted">
-              Do Circuit Zen às próximas temporadas — chaves, classificação e resultados de cada campeonato.
-            </p>
+      <main className="mx-auto max-w-6xl px-6 py-16">
+        <p className="eyebrow mb-2">Circuit</p>
+        <h1 className="font-display text-4xl font-semibold uppercase tracking-tight">Torneios</h1>
 
-            <div className="mt-10 grid grid-cols-2 gap-4 sm:grid-cols-4">
-              <div>
-                <p className="font-display text-2xl font-semibold text-live">{emAndamento.length}</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Em andamento</p>
-              </div>
-              <div>
-                <p className="font-display text-2xl font-semibold text-signal">{inscricoesAbertas.length}</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Inscrições abertas</p>
-              </div>
-              <div>
-                <p className="font-display text-2xl font-semibold">{emBreve.length}</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Em breve</p>
-              </div>
-              <div>
-                <p className="font-display text-2xl font-semibold text-muted">{finalizados.length}</p>
-                <p className="font-mono text-xs uppercase tracking-wider text-muted">Finalizados</p>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* FILTRO POR CATEGORIA */}
+        <div className="mt-6 flex flex-wrap gap-2">
+          <Link
+            href="/torneios"
+            className={`rounded-xl border px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider transition-colors ${
+              !categoriaAtiva ? 'border-signal bg-signal/10 text-signal' : 'border-white/10 bg-white/[0.03] text-muted hover:text-ink'
+            }`}
+          >
+            Todas
+          </Link>
+          {FASES_CIRCUITO.map((fase) => (
+            <Link
+              key={fase}
+              href={`/torneios?categoria=${encodeURIComponent(fase)}`}
+              className={`rounded-xl border px-4 py-2 font-mono text-xs font-semibold uppercase tracking-wider transition-colors ${
+                categoriaAtiva === fase ? 'border-signal bg-signal/10 text-signal' : 'border-white/10 bg-white/[0.03] text-muted hover:text-ink'
+              }`}
+            >
+              {fase}
+            </Link>
+          ))}
+        </div>
 
-        <div className="mx-auto max-w-6xl px-6 py-16">
-          {torneios.length === 0 && (
-            <div className="card p-10 text-center text-muted">Nenhum torneio publicado ainda.</div>
+        <div className="mt-10 grid gap-6 md:grid-cols-2">
+          {filtrados.length === 0 && (
+            <div className="card col-span-2 p-10 text-center text-muted">Nenhum torneio encontrado.</div>
           )}
-
-          {destaque && (
-            <div className="mb-6">
-              <p className="eyebrow mb-4">Destaque</p>
-              <div className="grid gap-6 md:grid-cols-2">
-                <TorneioCard t={destaque} destaque />
+          {filtrados.map((t) => (
+            <Link key={t.id} href={`/torneios/${t.slug}`} className="card group overflow-hidden transition-colors hover:border-signal/50">
+              {t.capa && (
+                <div className="aspect-[21/9] w-full bg-white/5">
+                  <img src={t.capa} alt={t.nome} loading="lazy" decoding="async" className="h-full w-full object-cover" />
+                </div>
+              )}
+              <div className="p-6">
+                <div className="mb-3 flex flex-wrap items-center gap-2">
+                  <StatusBadge status={t.status} />
+                  {t.faseCircuito && <span className="pill text-signal">{t.faseCircuito}</span>}
+                </div>
+                <h3 className="font-display text-xl font-semibold uppercase tracking-wide group-hover:text-signal">{t.nome}</h3>
+                <p className="mt-2 line-clamp-2 text-sm text-muted">{t.descricao}</p>
               </div>
-            </div>
-          )}
-
-          {resto.length > 0 && (
-            <div>
-              {destaque && <p className="eyebrow mb-4">Outros torneios</p>}
-              <div className="grid gap-6 md:grid-cols-2">
-                {resto.map((t) => (
-                  <TorneioCard key={t.id} t={t} />
-                ))}
-              </div>
-            </div>
-          )}
+            </Link>
+          ))}
         </div>
       </main>
       <SiteFooter />

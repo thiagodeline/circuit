@@ -90,9 +90,14 @@ export interface Inscricao {
 }
 
 // Cadeia oficial de torneios do circuito competitivo da Circuit
-export type FaseCircuito = 'Circuit Qualifier' | 'Circuit Masters';
+export type FaseCircuito = 'Circuit Qualifiers' | 'Circuit Elite' | 'Circuit Masters' | 'Circuit Finals';
 
-export const FASES_CIRCUITO: FaseCircuito[] = ['Circuit Qualifier', 'Circuit Masters'];
+export const FASES_CIRCUITO: FaseCircuito[] = [
+  'Circuit Qualifiers',
+  'Circuit Elite',
+  'Circuit Masters',
+  'Circuit Finals',
+];
 
 // Um lançamento de pontos de um time em um torneio específico da cadeia.
 // O ranking é sempre a SOMA desses lançamentos por time — nunca uma posição fixa.
