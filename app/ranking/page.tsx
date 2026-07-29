@@ -27,8 +27,8 @@ export default async function RankingPage() {
         <p className="eyebrow mb-2">Circuit Points</p>
         <h1 className="font-display text-4xl font-semibold uppercase">Ranking</h1>
         <p className="mt-3 max-w-xl text-muted">
-          Classificação geral por Pontos de Circuito, acumulados ao longo da cadeia oficial de
-          torneios: Circuit Qualifier → Copa Circuit → Series → Circuit ELITE → Circuit FINALS.
+          Classificação geral por pontos acumulados na temporada, considerando os resultados da
+          Série A e da Série B.
         </p>
 
         <div className="mt-10 space-y-3">

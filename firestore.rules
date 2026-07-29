@@ -10,6 +10,13 @@ service cloud.firestore {
       allow read, update, delete: if request.auth != null;
     }
 
+    // Pré-inscrição / lista de espera da Série B: mesmo padrão — qualquer
+    // visitante pode se cadastrar, só a staff logada pode ler/gerenciar.
+    match /pre_inscricoes_serie_b/{id} {
+      allow create: if true;
+      allow read, update, delete: if request.auth != null;
+    }
+
     // Demais coleções (torneios, times, partidas, notícias):
     // leitura pública para o site, escrita só para quem está logado no painel admin.
     match /{collection}/{docId} {

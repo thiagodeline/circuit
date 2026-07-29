@@ -34,7 +34,7 @@ export function calcularRankingCircuito(times: Time[], lancamentos: PontosCircui
   return linhas.sort((a, b) => b.total - a.total);
 }
 
-/** Monta o rótulo de exibição de um lançamento, ex: "Circuit Qualifier #1". */
+/** Monta o rótulo de exibição de um lançamento, ex: "Série A - Split 1". */
 export function rotuloOrigem(lancamento: PontosCircuito): string {
   return lancamento.edicao ? `${lancamento.fase} ${lancamento.edicao}` : lancamento.fase;
 }

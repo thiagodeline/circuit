@@ -247,7 +247,7 @@ export default function AdminTorneiosPage() {
                   onChange={(e) => setForm({ ...form, edicao: e.target.value })}
                   placeholder="#1, #2..."
                 />
-                <p className="mt-1 text-xs text-muted">Use para diferenciar edições repetidas, ex: "Circuit Qualifier #1".</p>
+                <p className="mt-1 text-xs text-muted">Use para diferenciar edições repetidas, ex: "Série A - Split 1".</p>
               </div>
               <label className="flex items-center gap-2 text-sm">
                 <input
