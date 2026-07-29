@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { REGRAS_SERIE_A, REGRAS_SERIE_B, DIVISAO_PREMIACAO_SERIE_A } from '@/lib/stagesData';
+import { stagesData, DIVISAO_FINANCEIRA_QUALIFIERS } from '@/lib/stagesData';
 
 type Aba = 'overview' | 'qualifiers' | 'elite' | 'masters' | 'finals' | 'financeiro';
 
