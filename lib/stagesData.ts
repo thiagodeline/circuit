@@ -21,22 +21,26 @@ export const DIVISAO_PREMIACAO_SERIE_A = [
   { colocacao: '2º lugar', valor: 'R$ 200,00' },
 ];
 
-export const stagesData: Record<string, { titulo: string; classificacao: string }> = {
+export const stagesData: Record<string, { titulo: string; classificacao: string; formato?: string }> = {
   qualifiers: {
     titulo: 'Qualifiers',
     classificacao: 'Acesso às fases principais',
+    formato: 'Eliminatórias diretas / Chave aberta',
   },
   elite: {
     titulo: 'Série A — Elite',
     classificacao: REGRAS_SERIE_A.permanencia,
+    formato: REGRAS_SERIE_A.formato,
   },
   masters: {
     titulo: 'Série B — Masters',
     classificacao: REGRAS_SERIE_B.acesso,
+    formato: REGRAS_SERIE_B.formato,
   },
   finals: {
     titulo: 'Finals',
     classificacao: 'Decisão do circuito',
+    formato: 'Playoffs Eliminação Dupla / MD3 e MD5',
   },
 };
 
