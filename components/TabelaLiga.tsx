@@ -9,7 +9,9 @@ export function TabelaLiga({ linhas, tipo }: { linhas: LinhaTabela[]; tipo: 'ser
           <tr className="bg-white/[0.03] text-left text-xs text-muted">
             <th className="px-4 py-3 font-normal">#</th>
             <th className="px-4 py-3 font-normal">Time</th>
+            <th className="px-2 py-3 text-center font-normal">J</th>
             <th className="px-2 py-3 text-center font-normal">V</th>
+            <th className="px-2 py-3 text-center font-normal">E</th>
             <th className="px-2 py-3 text-center font-normal">D</th>
             <th className="px-2 py-3 text-center font-normal">Saldo</th>
             <th className="px-3 py-3 text-center font-normal">Pts</th>
@@ -36,7 +38,9 @@ export function TabelaLiga({ linhas, tipo }: { linhas: LinhaTabela[]; tipo: 'ser
                   <span className="font-medium">{l.time.nome}</span>
                 </Link>
               </td>
+              <td className="px-2 py-3 text-center font-mono text-muted">{l.jogos}</td>
               <td className="px-2 py-3 text-center font-mono text-live">{l.vitorias}</td>
+              <td className="px-2 py-3 text-center font-mono text-muted">{l.empates}</td>
               <td className="px-2 py-3 text-center font-mono text-alert">{l.derrotas}</td>
               <td className="px-2 py-3 text-center font-mono text-muted">{l.saldo > 0 ? `+${l.saldo}` : l.saldo}</td>
               <td className="px-3 py-3 text-center font-mono font-semibold text-signal">{l.pontos}</td>
@@ -49,7 +53,7 @@ export function TabelaLiga({ linhas, tipo }: { linhas: LinhaTabela[]; tipo: 'ser
       <div className="flex flex-wrap gap-4 border-t border-white/10 px-4 py-3 font-mono text-[10px] uppercase tracking-wider text-muted">
         {tipo === 'serie-a' ? (
           <>
-            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-transparent border border-white/20" />Top 6 — permanece na Série A</span>
+            <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-transparent border border-white/20" />Fica na Série A</span>
             <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-alert" />Zona de rebaixamento para Série B</span>
           </>
         ) : (

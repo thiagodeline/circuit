@@ -3,6 +3,7 @@ import { Partida, Time } from '@/types';
 export interface LinhaTabela {
   time: Time;
   vitorias: number;
+  empates: number;
   derrotas: number;
   saldo: number;
   pontos: number;
@@ -12,8 +13,13 @@ export interface LinhaTabela {
 }
 
 /**
- * Calcula a tabela de classificação de uma liga inteira (pontos corridos, sem
- * sub-grupos) — usada nas páginas /serie-a e /serie-b. Vitória vale 3 pontos.
+ * Calcula a tabela de classificação de um grupo único (pontos corridos, sem
+ * playoffs) — usada nas páginas /serie-a e /serie-b. Vitória vale 3 pontos,
+ * empate vale 1 ponto pra cada time, derrota não pontua.
+ *
+ * Zona de rebaixamento/promoção é sempre "os 2 últimos" ou "os 2 primeiros"
+ * colocados, calculado dinamicamente pelo tamanho real do grupo (funciona com
+ * 8, 10 ou qualquer quantidade de times cadastrados).
  */
 export function calcularTabelaLiga(
   times: Time[],
@@ -23,6 +29,7 @@ export function calcularTabelaLiga(
   const base = times.map((time) => ({
     time,
     vitorias: 0,
+    empates: 0,
     derrotas: 0,
     saldo: 0,
     pontos: 0,
@@ -50,16 +57,23 @@ export function calcularTabelaLiga(
       linhaB.vitorias += 1;
       linhaB.pontos += 3;
       linhaA.derrotas += 1;
+    } else {
+      // Empate — MD2 pode terminar 1x1
+      linhaA.empates += 1;
+      linhaB.empates += 1;
+      linhaA.pontos += 1;
+      linhaB.pontos += 1;
     }
   }
 
   const ordenada = base.sort((a, b) => b.pontos - a.pontos || b.saldo - a.saldo || b.vitorias - a.vitorias);
+  const total = ordenada.length;
 
   return ordenada.map((l, i) => {
     const posicao = i + 1;
     let zona: LinhaTabela['zona'] = 'neutro';
     if (tipo === 'serie-a') {
-      zona = posicao <= 6 ? 'permanece' : 'rebaixamento';
+      zona = posicao > total - 2 ? 'rebaixamento' : 'permanece';
     } else {
       zona = posicao <= 2 ? 'promocao' : 'neutro';
     }

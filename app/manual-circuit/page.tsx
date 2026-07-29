@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { REGRAS_SERIE_A, REGRAS_SERIE_B, DIVISAO_PREMIACAO_SERIE_A } from '@/lib/stagesData';
+import { REGRAS_SERIE_A, REGRAS_SERIE_B, DIVISAO_PREMIACAO_SERIE_A, DIVISAO_PREMIACAO_SERIE_B } from '@/lib/stagesData';
 
 export default function ManualCircuitPage() {
   return (
@@ -56,6 +56,14 @@ export default function ManualCircuitPage() {
                 <li><strong className="text-ink">Inscrição:</strong> {REGRAS_SERIE_B.inscricao}</li>
                 <li>⬆️ {REGRAS_SERIE_B.acesso}</li>
               </ul>
+              <div className="mt-5 flex gap-4 border-t border-white/10 pt-5">
+                {DIVISAO_PREMIACAO_SERIE_B.map((d) => (
+                  <div key={d.colocacao}>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted">{d.colocacao}</p>
+                    <p className="font-display text-lg font-semibold text-signal">{d.valor}</p>
+                  </div>
+                ))}
+              </div>
               <p className="mt-5 border-t border-white/10 pt-5 text-sm text-muted">
                 A Série B só existe a partir do 2º Split, formada pelos 2 rebaixados da Série A do
                 Split anterior somados às 6 vagas abertas por inscrição.
@@ -68,9 +76,9 @@ export default function ManualCircuitPage() {
           <section className="mt-10">
             <p className="eyebrow mb-4">Ciclo de acesso e rebaixamento</p>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="pill text-ink">Série A (Top 6 permanece)</span>
+              <span className="pill text-ink">Série A (1º ao 8º permanece)</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
-              <span className="pill text-alert">7º e 8º rebaixados</span>
+              <span className="pill text-alert">9º e 10º rebaixados</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
               <span className="pill text-ink">Série B (formada)</span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>

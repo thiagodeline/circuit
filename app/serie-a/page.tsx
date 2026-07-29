@@ -39,8 +39,8 @@ export default async function SerieAPage() {
         {/* PREMIAÇÃO EM DESTAQUE */}
         <div className="mt-6 card flex flex-wrap items-center gap-8 p-6">
           <div>
-            <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Premiação</p>
-            <p className="font-display text-2xl font-bold text-signal">R$ 1000,00</p>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Premiação total</p>
+            <p className="font-display text-2xl font-bold text-signal">R$ 1.000,00</p>
           </div>
           {DIVISAO_PREMIACAO_SERIE_A.map((d) => (
             <div key={d.colocacao}>
@@ -79,8 +79,8 @@ export default async function SerieAPage() {
         <div className="mt-12 card p-6">
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted">Destino final da tabela</p>
           <p className="mt-2 text-sm text-muted">
-            1º ao 8º lugar garantem vaga na Série A do próximo Split. 🔻 9º e 10º lugar são
-            rebaixados para a{' '}
+            🛡️ 1º ao 8º lugar garantem vaga na Série A do próximo Split. 🔻 9º e 10º lugar são
+            rebaixados e fundam a{' '}
             <Link href="/serie-b" className="text-signal hover:underline">Série B</Link>.
           </p>
         </div>

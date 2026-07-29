@@ -4,16 +4,18 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
 import { MatchRow } from '@/components/MatchRow';
+import { TabelaLiga } from '@/components/TabelaLiga';
+import { calcularTabelaLiga } from '@/lib/standings';
 import { TorneioTabsClient } from '@/components/TorneioTabsClient';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 
 export const revalidate = 30;
 
-// ❌ Removida a aba de chaveamento da lista abaixo:
 const TABS = [
   { key: 'visao-geral', label: 'Visão Geral' },
   { key: 'equipes', label: 'Times Inscritos' },
+  { key: 'classificacao', label: 'Classificação' },
   { key: 'regulamento', label: 'Regulamento' },
 ];
 
@@ -33,6 +35,8 @@ export default async function TorneioDetalhePage({
   ]);
 
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
+  const ehSerieB = torneio.faseCircuito === 'Série B';
+  const tabela = calcularTabelaLiga(times, partidas, ehSerieB ? 'serie-b' : 'serie-a');
   const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
   const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
 
@@ -103,6 +107,29 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
+  const painelClassificacao = (
+    <div className="space-y-8">
+      {tabela.length === 0 ? (
+        <p className="text-muted">Nenhum time inscrito ainda.</p>
+      ) : (
+        <TabelaLiga linhas={tabela} tipo={ehSerieB ? 'serie-b' : 'serie-a'} />
+      )}
+
+      <div>
+        <p className="eyebrow mb-4">Partidas (MD2)</p>
+        {partidas.length === 0 ? (
+          <p className="text-sm text-muted">Nenhuma partida cadastrada ainda.</p>
+        ) : (
+          <div className="grid gap-2 sm:grid-cols-2">
+            {ordenarPartidasPorData(partidas).map((p) => (
+              <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   const painelRegulamento = (
     <div className="max-w-2xl space-y-8">
       {torneio.premiacao && (
@@ -136,10 +163,10 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
-  // ❌ Painel do chaveamento removido dos painéis ativos abaixo:
   const panels: Record<string, React.ReactNode> = {
     'visao-geral': painelVisaoGeral,
     equipes: painelEquipes,
+    classificacao: painelClassificacao,
     regulamento: painelRegulamento,
   };
 
