@@ -4,17 +4,16 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
 import { MatchRow } from '@/components/MatchRow';
-import { Bracket } from '@/components/Bracket';
 import { TorneioTabsClient } from '@/components/TorneioTabsClient';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 
 export const revalidate = 30;
 
+// ❌ Removida a aba de chaveamento da lista abaixo:
 const TABS = [
   { key: 'visao-geral', label: 'Visão Geral' },
   { key: 'equipes', label: 'Times Inscritos' },
-  { key: 'chaveamento', label: 'Chaveamento / Brackets' },
   { key: 'regulamento', label: 'Regulamento' },
 ];
 
@@ -34,7 +33,6 @@ export default async function TorneioDetalhePage({
   ]);
 
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
-  const fases = Array.from(new Set(partidas.map((p) => p.fase)));
   const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
   const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
 
@@ -105,16 +103,6 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
-  const painelChaveamento = (
-    <div>
-      {fases.length === 0 ? (
-        <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
-      ) : (
-        <Bracket fases={fases} partidas={partidas} timesPorId={timesPorId} />
-      )}
-    </div>
-  );
-
   const painelRegulamento = (
     <div className="max-w-2xl space-y-8">
       {torneio.premiacao && (
@@ -148,10 +136,10 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
+  // ❌ Painel do chaveamento removido dos painéis ativos abaixo:
   const panels: Record<string, React.ReactNode> = {
     'visao-geral': painelVisaoGeral,
     equipes: painelEquipes,
-    chaveamento: painelChaveamento,
     regulamento: painelRegulamento,
   };
 

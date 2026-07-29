@@ -79,7 +79,7 @@ export default async function SerieAPage() {
         <div className="mt-12 card p-6">
           <p className="font-mono text-xs font-semibold uppercase tracking-wider text-muted">Destino final da tabela</p>
           <p className="mt-2 text-sm text-muted">
-            1º ao 6º lugar garantem vaga na Série A do próximo Split. 🔻 7º e 8º lugar são
+            1º ao 8º lugar garantem vaga na Série A do próximo Split. 🔻 9º e 10º lugar são
             rebaixados para a{' '}
             <Link href="/serie-b" className="text-signal hover:underline">Série B</Link>.
           </p>
