@@ -24,7 +24,7 @@ export default async function SerieBPage() {
     <>
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-6 py-16">
-        <span className="pill text-signal">SÉRIE B — ACESSO</span>
+        <span className="pill text-signal">SÉRIE B</span>
         <h1 className="mt-3 font-display text-4xl font-semibold uppercase tracking-tight">
           {torneio ? torneio.nome : 'Série B'}
         </h1>
