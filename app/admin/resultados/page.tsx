@@ -14,7 +14,7 @@ import {
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 import { Torneio, Time, Partida, MapaJogado } from '@/types';
 
-const FASES_CHAVE = ['Oitavas de Final', 'Quartas de Final', 'Semifinal', 'Grande Final'];
+const FASES_CHAVE = ['Rodada 1', 'Rodada 2', 'Rodada 3', 'Rodada 4', 'Rodada 5', 'Rodada 6', 'Rodada 7', 'Rodada 8', 'Rodada 9'];
 
 const vazio = { fase: FASES_CHAVE[0], timeA: '', timeB: '', data: '' };
 
@@ -209,7 +209,7 @@ export default function AdminResultadosPage() {
             <form onSubmit={criar} className="card h-fit space-y-4 p-6">
               <h2 className="font-display font-semibold">Nova partida</h2>
               <div>
-                <label className="label">Fase da Chave</label>
+                <label className="label">Rodada</label>
                 <select required className="input" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })}>
                   {FASES_CHAVE.map((f) => (
                     <option key={f} value={f}>{f}</option>
