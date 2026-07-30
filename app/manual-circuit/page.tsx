@@ -51,7 +51,6 @@ export default function ManualCircuitPage() {
               </h2>
               <ul className="space-y-3 text-sm text-muted">
                 <li><strong className="text-ink">Formato:</strong> {REGRAS_SERIE_B.formato}</li>
-                <li><strong className="text-ink">Inscrição:</strong> {REGRAS_SERIE_B.inscricao}</li>
                 <li>⬆️ {REGRAS_SERIE_B.acesso}</li>
               </ul>
               <div className="mt-5 flex gap-4 border-t border-white/10 pt-5">
