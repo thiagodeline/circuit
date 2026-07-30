@@ -29,8 +29,6 @@ export default function ManualCircuitPage() {
               </h2>
               <ul className="space-y-3 text-sm text-muted">
                 <li><strong className="text-ink">Formato:</strong> {REGRAS_SERIE_A.formato}</li>
-                <li><strong className="text-ink">Inscrição:</strong> {REGRAS_SERIE_A.inscricao}</li>
-                <li><strong className="text-ink">Premiação total:</strong> {REGRAS_SERIE_A.premiacaoTotal}</li>
                 <li>🛡️ {REGRAS_SERIE_A.permanencia}</li>
                 <li>🔻 {REGRAS_SERIE_A.rebaixamento}</li>
               </ul>
