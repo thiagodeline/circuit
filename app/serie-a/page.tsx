@@ -3,7 +3,7 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { TabelaLiga } from '@/components/TabelaLiga';
 import { MatchRow } from '@/components/MatchRow';
-import { buscarTorneioPorFase, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
+import { buscarTorneioPorFase, listarTimesPorTorneio, listarPartidasPorTorneio, buscarConfigTemporada } from '@/lib/data';
 import { calcularTabelaLiga } from '@/lib/standings';
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 import { DIVISAO_PREMIACAO_SERIE_A } from '@/lib/stagesData';
@@ -12,6 +12,7 @@ export const revalidate = 30;
 
 export default async function SerieAPage() {
   const torneio = await buscarTorneioPorFase('Série A').catch(() => null);
+  const config = await buscarConfigTemporada().catch(() => null);
 
   const [times, partidas] = torneio
     ? await Promise.all([
@@ -42,12 +43,14 @@ export default async function SerieAPage() {
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Premiação total</p>
             <p className="font-display text-2xl font-bold text-signal">R$ 1.000,00</p>
           </div>
-          {DIVISAO_PREMIACAO_SERIE_A.map((d) => (
-            <div key={d.colocacao}>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-muted">{d.colocacao}</p>
-              <p className="font-display text-lg font-semibold">{d.valor}</p>
-            </div>
-          ))}
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted">1º lugar</p>
+            <p className="font-display text-lg font-semibold">{config?.premio1SerieA || DIVISAO_PREMIACAO_SERIE_A[0].valor}</p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted">2º lugar</p>
+            <p className="font-display text-lg font-semibold">{config?.premio2SerieA || DIVISAO_PREMIACAO_SERIE_A[1].valor}</p>
+          </div>
         </div>
 
         {torneio ? (

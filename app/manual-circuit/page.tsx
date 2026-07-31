@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { REGRAS_SERIE_A, REGRAS_SERIE_B, DIVISAO_PREMIACAO_SERIE_A, DIVISAO_PREMIACAO_SERIE_B } from '@/lib/stagesData';
+import { buscarConfigTemporada } from '@/lib/data';
 
-export default function ManualCircuitPage() {
+export default async function ManualCircuitPage() {
+  const config = await buscarConfigTemporada().catch(() => null);
   return (
     <>
       <SiteHeader />
@@ -29,16 +31,20 @@ export default function ManualCircuitPage() {
               </h2>
               <ul className="space-y-3 text-sm text-muted">
                 <li><strong className="text-ink">Formato:</strong> {REGRAS_SERIE_A.formato}</li>
+                <li><strong className="text-ink">Inscrição:</strong> {config?.inscricaoSerieA || REGRAS_SERIE_A.inscricao}</li>
+                <li><strong className="text-ink">Premiação total:</strong> {REGRAS_SERIE_A.premiacaoTotal}</li>
                 <li>🛡️ {REGRAS_SERIE_A.permanencia}</li>
                 <li>🔻 {REGRAS_SERIE_A.rebaixamento}</li>
               </ul>
               <div className="mt-5 flex gap-4 border-t border-white/10 pt-5">
-                {DIVISAO_PREMIACAO_SERIE_A.map((d) => (
-                  <div key={d.colocacao}>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted">{d.colocacao}</p>
-                    <p className="font-display text-lg font-semibold text-signal">{d.valor}</p>
-                  </div>
-                ))}
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">1º lugar</p>
+                  <p className="font-display text-lg font-semibold text-signal">{config?.premio1SerieA || DIVISAO_PREMIACAO_SERIE_A[0].valor}</p>
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">2º lugar</p>
+                  <p className="font-display text-lg font-semibold text-signal">{config?.premio2SerieA || DIVISAO_PREMIACAO_SERIE_A[1].valor}</p>
+                </div>
               </div>
               <Link href="/serie-a" className="btn-secondary mt-6 inline-flex text-xs">Ver Série A</Link>
             </section>
@@ -51,15 +57,18 @@ export default function ManualCircuitPage() {
               </h2>
               <ul className="space-y-3 text-sm text-muted">
                 <li><strong className="text-ink">Formato:</strong> {REGRAS_SERIE_B.formato}</li>
+                <li><strong className="text-ink">Inscrição:</strong> {config?.inscricaoSerieB || REGRAS_SERIE_B.inscricao}</li>
                 <li>⬆️ {REGRAS_SERIE_B.acesso}</li>
               </ul>
               <div className="mt-5 flex gap-4 border-t border-white/10 pt-5">
-                {DIVISAO_PREMIACAO_SERIE_B.map((d) => (
-                  <div key={d.colocacao}>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted">{d.colocacao}</p>
-                    <p className="font-display text-lg font-semibold text-signal">{d.valor}</p>
-                  </div>
-                ))}
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">1º lugar</p>
+                  <p className="font-display text-lg font-semibold text-signal">{config?.premio1SerieB || DIVISAO_PREMIACAO_SERIE_B[0].valor}</p>
+                </div>
+                <div>
+                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">2º lugar</p>
+                  <p className="font-display text-lg font-semibold text-signal">{config?.premio2SerieB || DIVISAO_PREMIACAO_SERIE_B[1].valor}</p>
+                </div>
               </div>
               <p className="mt-5 border-t border-white/10 pt-5 text-sm text-muted">
                 A Série B só existe a partir do 2º Split, formada pelos 2 rebaixados da Série A do

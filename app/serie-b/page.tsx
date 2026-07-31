@@ -1,6 +1,6 @@
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { buscarTorneioPorFase, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
+import { buscarTorneioPorFase, listarTimesPorTorneio, listarPartidasPorTorneio, buscarConfigTemporada } from '@/lib/data';
 import { calcularTabelaLiga } from '@/lib/standings';
 import { TabelaLiga } from '@/components/TabelaLiga';
 import { REGRAS_SERIE_B, DIVISAO_PREMIACAO_SERIE_B } from '@/lib/stagesData';
@@ -10,6 +10,7 @@ export const revalidate = 30;
 
 export default async function SerieBPage() {
   const torneio = await buscarTorneioPorFase('Série B').catch(() => null);
+  const config = await buscarConfigTemporada().catch(() => null);
 
   const [times, partidas] = torneio
     ? await Promise.all([
@@ -41,7 +42,7 @@ export default async function SerieBPage() {
           </div>
           <div className="card p-5">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Inscrição</p>
-            <p className="mt-2 text-sm font-medium text-signal">{REGRAS_SERIE_B.inscricao}</p>
+            <p className="mt-2 text-sm font-medium text-signal">{config?.inscricaoSerieB || REGRAS_SERIE_B.inscricao}</p>
           </div>
           <div className="card p-5">
             <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Acesso</p>
@@ -50,12 +51,14 @@ export default async function SerieBPage() {
         </div>
 
         <div className="mt-4 card flex flex-wrap items-center gap-8 p-6">
-          {DIVISAO_PREMIACAO_SERIE_B.map((d) => (
-            <div key={d.colocacao}>
-              <p className="font-mono text-[10px] uppercase tracking-wider text-muted">{d.colocacao}</p>
-              <p className="font-display text-lg font-semibold text-signal">{d.valor}</p>
-            </div>
-          ))}
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted">1º lugar</p>
+            <p className="font-display text-lg font-semibold text-signal">{config?.premio1SerieB || DIVISAO_PREMIACAO_SERIE_B[0].valor}</p>
+          </div>
+          <div>
+            <p className="font-mono text-[10px] uppercase tracking-wider text-muted">2º lugar</p>
+            <p className="font-display text-lg font-semibold text-signal">{config?.premio2SerieB || DIVISAO_PREMIACAO_SERIE_B[1].valor}</p>
+          </div>
         </div>
 
         {torneio && tabela.length > 0 && (
@@ -70,7 +73,7 @@ export default async function SerieBPage() {
           <p className="eyebrow mb-4">Pré-inscrição — vagas abertas</p>
           <p className="mb-6 max-w-2xl text-sm text-muted">
             A Série B ainda não abriu oficialmente. Deixe os dados do seu time na lista de espera —
-            quando as 8 vagas abertas forem liberadas (R$ 150,00 por time), a staff entra em contato
+            quando as 8 vagas abertas forem liberadas ({config?.inscricaoSerieB || 'R$ 150,00 por time'}), a staff entra em contato
             pela ordem de cadastro.
           </p>
           <PreInscricaoSerieBForm />
