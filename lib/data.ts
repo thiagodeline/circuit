@@ -6,6 +6,7 @@ import {
   addDoc,
   updateDoc,
   deleteDoc,
+  setDoc,
   query,
   where,
   orderBy,
@@ -178,4 +179,33 @@ export async function criarPreInscricaoSerieB(dados: Omit<PreInscricaoSerieB, 'i
 export async function listarPreInscricoesSerieB(): Promise<PreInscricaoSerieB[]> {
   const snap = await getDocs(query(collection(db, 'pre_inscricoes_serie_b'), orderBy('criadoEm', 'asc')));
   return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as PreInscricaoSerieB);
+}
+
+// --- Configuração da temporada (valores editáveis pelo admin) ---
+
+export interface ConfigTemporada {
+  inscricaoSerieA: string;
+  premio1SerieA: string;
+  premio2SerieA: string;
+  inscricaoSerieB: string;
+  premio1SerieB: string;
+  premio2SerieB: string;
+}
+
+const CONFIG_PADRAO: ConfigTemporada = {
+  inscricaoSerieA: 'R$ 150,00 por time',
+  premio1SerieA: 'R$ 800,00',
+  premio2SerieA: 'R$ 200,00',
+  inscricaoSerieB: 'R$ 150,00 por time (vagas abertas)',
+  premio1SerieB: 'R$ 500,00',
+  premio2SerieB: 'R$ 200,00',
+};
+
+export async function buscarConfigTemporada(): Promise<ConfigTemporada> {
+  const snap = await getDoc(doc(db, 'configuracoes', 'temporada'));
+  return snap.exists() ? { ...CONFIG_PADRAO, ...(snap.data() as Partial<ConfigTemporada>) } : CONFIG_PADRAO;
+}
+
+export async function atualizarConfigTemporada(dados: ConfigTemporada) {
+  return setDoc(doc(db, 'configuracoes', 'temporada'), dados);
 }
