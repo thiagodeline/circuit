@@ -1,11 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { listarTorneios } from '@/lib/data';
-import { FASES_CIRCUITO, Torneio } from '@/types';
-
-function rotuloEdicao(t: Torneio) {
-  return t.edicao ? `${t.nome}` : t.nome;
-}
+import { Torneio } from '@/types';
 
 export async function SiteHeader() {
   let torneios: Torneio[] = [];
@@ -22,38 +18,6 @@ export async function SiteHeader() {
     : inscricoes
     ? { texto: `INSCRIÇÕES ABERTAS — ${inscricoes.nome}`, href: `/torneios/${inscricoes.slug}` }
     : null;
-
-  // Agrupa os torneios por etapa da cadeia oficial, para montar o dropdown "Etapas"
-  const torneiosPorFase = FASES_CIRCUITO.map((fase) => ({
-    fase,
-    edicoes: torneios
-      .filter((t) => t.faseCircuito === fase)
-      .sort((a, b) => (a.dataInicio || '').localeCompare(b.dataInicio || '')),
-  }));
-
-  function statusFase(edicoes: Torneio[]): 'concluido' | 'atual' | 'futuro' {
-    if (edicoes.some((t) => t.etapaAtiva || t.status === 'em_andamento')) return 'atual';
-    if (edicoes.length > 0 && edicoes.every((t) => t.status === 'finalizado')) return 'concluido';
-    return 'futuro';
-  }
-
-  function IconeStatus({ status }: { status: 'concluido' | 'atual' | 'futuro' }) {
-    if (status === 'concluido') {
-      return (
-        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full bg-live text-base">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5"><path d="m5 13 4 4L19 7" /></svg>
-        </span>
-      );
-    }
-    if (status === 'atual') {
-      return (
-        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border-2 border-signal">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-signal" />
-        </span>
-      );
-    }
-    return <span className="h-5 w-5 flex-shrink-0 rounded-full border-2 border-white/20" />;
-  }
 
   return (
     <header className="sticky top-0 z-40 border-b border-white/10 bg-base/90 backdrop-blur-md">
@@ -77,61 +41,40 @@ export async function SiteHeader() {
             Home
           </Link>
 
-          {/* ETAPAS — dropdown com flyout lateral, tudo em CSS puro (group-hover),
-              sem precisar de client component/JS para abrir/fechar */}
+          {/* ETAPAS — dropdown simples, cada item já é o link direto (sem flyout lateral) */}
           <div className="group relative">
             <button className="flex items-center gap-1.5 font-display text-sm font-bold uppercase tracking-wide text-muted transition-colors hover:text-ink">
               Etapas
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><path d="m6 9 6 6 6-6"/></svg>
             </button>
-            <div className="invisible absolute left-1/2 top-full z-50 w-72 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100">
-              <div className="rounded-2xl border border-white/10 bg-base/95 p-4 backdrop-blur-xl">
-                <div className="space-y-0">
-                  {torneiosPorFase.map(({ fase, edicoes }, i) => {
-                    const status = statusFase(edicoes);
-                    const temFlyout = edicoes.length > 0;
-                    const ultimo = i === torneiosPorFase.length - 1;
-                    return (
-                      <div key={fase} className="group/item relative flex gap-3">
-                        {/* coluna do ícone + linha vertical conectando os itens */}
-                        <div className="flex flex-col items-center">
-                          <IconeStatus status={status} />
-                          {!ultimo && <span className="my-1 w-px flex-1 bg-white/15" />}
-                        </div>
-
-                        <div className={`min-w-0 flex-1 pb-5 ${temFlyout ? 'cursor-pointer' : 'opacity-50'}`}>
-                          <p className={`font-display text-sm font-semibold uppercase tracking-wide ${status === 'atual' ? 'text-white' : 'text-muted'}`}>
-                            {fase}
-                          </p>
-                          <p className="mt-0.5 font-mono text-[10px] uppercase tracking-wider text-muted/70">
-                            {status === 'concluido' ? 'Concluída' : status === 'atual' ? 'Em andamento' : 'Em breve'}
-                          </p>
-                        </div>
-
-                        {/* FLYOUT LATERAL — lista as edições daquela fase */}
-                        {temFlyout && (
-                          <div className="invisible absolute left-full top-0 z-50 w-56 pl-2 opacity-0 transition-opacity duration-150 group-hover/item:visible group-hover/item:opacity-100">
-                            <div className="rounded-2xl border border-white/10 bg-base/95 p-1.5 backdrop-blur-xl">
-                              {edicoes.map((t) => (
-                                <Link
-                                  key={t.id}
-                                  href={`/torneios/${t.slug}`}
-                                  className="block rounded-xl px-3 py-2.5 text-sm transition-colors hover:bg-white/5 hover:text-signal"
-                                >
-                                  {rotuloEdicao(t)}
-                                </Link>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+            <div className="invisible absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100">
+              <div className="rounded-2xl border border-white/10 bg-base/95 p-1.5 backdrop-blur-xl">
+                <Link
+                  href="/serie-a"
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/5"
+                >
+                  <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2 border-signal">
+                    <span className="h-1.5 w-1.5 rounded-full bg-signal" />
+                  </span>
+                  <span>
+                    <p className="font-display text-sm font-semibold uppercase tracking-wide">Série A</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Em andamento</p>
+                  </span>
+                </Link>
+                <Link
+                  href="/serie-b"
+                  className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/5"
+                >
+                  <span className="h-4 w-4 flex-shrink-0 rounded-full border-2 border-white/20" />
+                  <span>
+                    <p className="font-display text-sm font-semibold uppercase tracking-wide text-muted">Série B</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted/70">Em breve</p>
+                  </span>
+                </Link>
 
                 {/* SAIBA MAIS */}
-                <div className="mt-2 border-t border-white/10 pt-3">
-                  <p className="mb-2 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted">Saiba mais</p>
+                <div className="mt-2 border-t border-white/10 pt-2">
+                  <p className="mb-1 px-3 font-mono text-[10px] font-semibold uppercase tracking-wider text-muted">Saiba mais</p>
                   <Link
                     href="/manual-circuit"
                     className="block rounded-xl px-3 py-2 text-sm font-medium transition-colors hover:bg-white/5 hover:text-signal"

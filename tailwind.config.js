@@ -4,7 +4,7 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        base: '#0B0E14',      // fundo principal, dark mode profundo
+        base: '#232323',      // fundo principal
         surface: '#151C2C',   // cards glassmorphism
         surface2: '#1B2338',  // camada elevada (hover, inputs)
         line: '#1E293B',      // bordas suaves

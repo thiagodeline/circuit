@@ -19,7 +19,7 @@ export function SiteFooter() {
           <div>
             <p className="eyebrow mb-4">Navegação</p>
             <ul className="space-y-2 text-sm text-muted">
-              <li><Link href="/" className="transition-colors hover:text-ink">Torneios</Link></li>
+              <li><Link href="/serie-a" className="transition-colors hover:text-ink">Torneios</Link></li>
               <li><Link href="/ranking" className="transition-colors hover:text-ink">Ranking</Link></li>
               <li><Link href="/noticias" className="transition-colors hover:text-ink">Notícias</Link></li>
             </ul>

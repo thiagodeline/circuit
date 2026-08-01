@@ -187,7 +187,7 @@ export default async function TorneioDetalhePage({
 
             <div className="relative mx-auto max-w-[1400px] px-6 pt-8">
               <nav className="flex items-center gap-2 pb-6 font-mono text-xs uppercase tracking-wider text-muted">
-                <Link href="/torneios" className="transition-colors hover:text-ink">Torneios</Link>
+                <Link href="/serie-a" className="transition-colors hover:text-ink">Série A</Link>
                 <span>/</span>
                 <span className="text-ink">{torneio.nome}</span>
               </nav>
