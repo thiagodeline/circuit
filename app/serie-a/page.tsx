@@ -30,7 +30,7 @@ export default async function SerieAPage() {
       <SiteHeader />
       <main className="mx-auto max-w-6xl px-6 py-16">
         <div className="mb-3 flex items-center gap-3">
-          <span className="pill text-signal">SÉRIE A — ELITE</span>
+          <span className="pill text-signal">SÉRIE A</span>
           {torneio?.status && <span className="pill text-muted">{torneio.status.replace('_', ' ')}</span>}
         </div>
         <h1 className="font-display text-4xl font-semibold uppercase tracking-tight">
