@@ -24,6 +24,7 @@ const vazio = {
   regulamentoUrl: '',
   streamUrl: '',
   valorInscricao: '',
+  vagas: '',
   capa: '',
 };
 
@@ -61,6 +62,7 @@ export default function AdminTorneiosPage() {
       regulamentoUrl: t.regulamentoUrl || '',
       streamUrl: t.streamUrl || '',
       valorInscricao: t.valorInscricao ? String(t.valorInscricao) : '',
+      vagas: t.vagas ? String(t.vagas) : '',
       capa: t.capa || '',
     });
   }
@@ -79,6 +81,11 @@ export default function AdminTorneiosPage() {
         dados.valorInscricao = Number(form.valorInscricao);
       } else {
         delete dados.valorInscricao; // sem valor = inscrição gratuita
+      }
+      if (form.vagas) {
+        dados.vagas = Number(form.vagas);
+      } else {
+        delete dados.vagas;
       }
       if (!dados.faseCircuito) delete dados.faseCircuito;
       if (!dados.edicao) delete dados.edicao;
@@ -247,7 +254,7 @@ export default function AdminTorneiosPage() {
                   onChange={(e) => setForm({ ...form, edicao: e.target.value })}
                   placeholder="#1, #2..."
                 />
-                <p className="mt-1 text-xs text-muted">Use para diferenciar edições repetidas, ex: "Série A - Split 1".</p>
+                <p className="mt-1 text-xs text-muted">Use para diferenciar edições repetidas, ex: "VCL Qualifier - 2026".</p>
               </div>
               <label className="flex items-center gap-2 text-sm">
                 <input
@@ -317,6 +324,17 @@ export default function AdminTorneiosPage() {
                 <p className="mt-1 text-xs text-muted">
                   Se preenchido, o time precisa pagar via PIX (Mercado Pago) para concluir a inscrição.
                 </p>
+              </div>
+              <div>
+                <label className="label">Quantidade de vagas (times)</label>
+                <input
+                  type="number"
+                  min="0"
+                  className="input"
+                  value={form.vagas}
+                  onChange={(e) => setForm({ ...form, vagas: e.target.value })}
+                  placeholder="Ex: 24 no Qualifier, 16 no VCL"
+                />
               </div>
               <div>
                 <label className="label">URL da imagem de capa</label>

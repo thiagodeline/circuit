@@ -149,7 +149,7 @@ export default function AdminRankingPage() {
                   onChange={(e) => setForm({ ...form, edicao: e.target.value })}
                   placeholder="#1, #2..."
                 />
-                <p className="mt-1 text-xs text-muted">Use para diferenciar edições repetidas, ex: "Série A - Split 1".</p>
+                <p className="mt-1 text-xs text-muted">Use para diferenciar edições repetidas, ex: "VCL Qualifier - 2026".</p>
               </div>
               <div>
                 <label className="label">Quantidade de pontos</label>

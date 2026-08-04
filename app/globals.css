@@ -7,15 +7,15 @@
     color-scheme: dark;
   }
   select option {
-    background-color: #12141A;
+    background-color: #16171C;
     color: #EDEDED;
   }
   ::selection {
-    background-color: #00f0ff;
+    background-color: #ff1f3d;
     color: #0d1117;
   }
   :focus-visible {
-    outline: 2px solid #00f0ff;
+    outline: 2px solid #ff1f3d;
     outline-offset: 2px;
   }
   h1, h2, h3 {
@@ -60,8 +60,8 @@
   /* Botão primário — pílula com degradê neon laranja; glow leve só na borda,
      sem shadow-lg (blur de sombra grande é caro; borda com brilho é mais barata) */
   .btn-primary {
-    @apply inline-flex items-center justify-center rounded-full border border-signal/50 bg-gradient-to-r from-signal to-cyan-600 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-black transition-colors hover:border-signal hover:brightness-110;
-    box-shadow: 0 0 18px -4px rgba(0, 240, 255, 0.55);
+    @apply inline-flex items-center justify-center rounded-full border border-signal/50 bg-gradient-to-r from-signal to-red-700 px-6 py-3 font-display text-sm font-semibold uppercase tracking-wider text-white transition-colors hover:border-signal hover:brightness-110;
+    box-shadow: 0 0 18px -4px rgba(255, 31, 61, 0.5);
   }
 
   /* Botão secundário — vidro translúcido com borda fina */

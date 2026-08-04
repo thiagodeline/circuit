@@ -1,11 +1,8 @@
-import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
-import { REGRAS_SERIE_A, REGRAS_SERIE_B, DIVISAO_PREMIACAO_SERIE_A, DIVISAO_PREMIACAO_SERIE_B } from '@/lib/stagesData';
-import { buscarConfigTemporada } from '@/lib/data';
+import { ESTRUTURA_QUALIFIER, ESTRUTURA_VCL } from '@/lib/stagesData';
 
-export default async function ManualCircuitPage() {
-  const config = await buscarConfigTemporada().catch(() => null);
+export default function ManualCircuitPage() {
   return (
     <>
       <SiteHeader />
@@ -16,84 +13,87 @@ export default async function ManualCircuitPage() {
               Manual Circuit
             </h1>
             <p className="mt-3 max-w-2xl text-muted">
-              Como funciona o sistema de acesso e rebaixamento entre a Série A e a Série B da Circuit.
+              Como funciona o caminho até o VCL — do VCL Qualifier aos playoffs decisivos.
             </p>
           </div>
         </section>
 
         <div className="mx-auto max-w-6xl px-6 py-14">
           <div className="grid gap-6 md:grid-cols-2">
-            {/* SÉRIE A */}
+            {/* VCL QUALIFIER */}
             <section className="card p-6">
-              <span className="pill w-fit text-signal">SÉRIE A — ELITE</span>
+              <span className="pill w-fit text-signal">FASE CLASSIFICATÓRIA</span>
               <h2 className="mt-4 mb-4 font-display text-xl font-semibold uppercase tracking-wide">
-                Regras da Série A
+                VCL Qualifier
               </h2>
-              <ul className="space-y-3 text-sm text-muted">
-                <li><strong className="text-ink">Formato:</strong> {REGRAS_SERIE_A.formato}</li>
-                <li><strong className="text-ink">Inscrição:</strong> {config?.inscricaoSerieA || REGRAS_SERIE_A.inscricao}</li>
-                <li><strong className="text-ink">Premiação total:</strong> {REGRAS_SERIE_A.premiacaoTotal}</li>
-                <li>🛡️ {REGRAS_SERIE_A.permanencia}</li>
-                <li>🔻 {REGRAS_SERIE_A.rebaixamento}</li>
-              </ul>
-              <div className="mt-5 flex gap-4 border-t border-white/10 pt-5">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">1º lugar</p>
-                  <p className="font-display text-lg font-semibold text-signal">{config?.premio1SerieA || DIVISAO_PREMIACAO_SERIE_A[0].valor}</p>
-                </div>
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">2º lugar</p>
-                  <p className="font-display text-lg font-semibold text-signal">{config?.premio2SerieA || DIVISAO_PREMIACAO_SERIE_A[1].valor}</p>
-                </div>
+              <div className="space-y-4">
+                {ESTRUTURA_QUALIFIER.map((etapa, i) => (
+                  <div key={etapa.titulo} className="flex gap-3">
+                    <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-signal/40 font-mono text-xs text-signal">
+                      {i + 1}
+                    </span>
+                    <div>
+                      <p className="font-medium">{etapa.titulo}</p>
+                      <p className="text-sm text-muted">{etapa.descricao}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-              <Link href="/serie-a" className="btn-secondary mt-6 inline-flex text-xs">Ver Série A</Link>
+              <p className="mt-5 border-t border-white/10 pt-5 text-xs text-muted">
+                Quantidade de times, valor de inscrição e premiação de cada edição são definidos
+                pela staff no painel admin, na página do torneio correspondente.
+              </p>
             </section>
 
-            {/* SÉRIE B */}
+            {/* VCL */}
             <section className="card p-6">
-              <span className="pill w-fit text-signal">SÉRIE B — ACESSO</span>
+              <span className="pill w-fit text-signal">TORNEIO PRINCIPAL</span>
               <h2 className="mt-4 mb-4 font-display text-xl font-semibold uppercase tracking-wide">
-                Regras da Série B
+                VCL — Playoffs
               </h2>
-              <ul className="space-y-3 text-sm text-muted">
-                <li><strong className="text-ink">Formato:</strong> {REGRAS_SERIE_B.formato}</li>
-                <li><strong className="text-ink">Inscrição:</strong> {config?.inscricaoSerieB || REGRAS_SERIE_B.inscricao}</li>
-                <li>⬆️ {REGRAS_SERIE_B.acesso}</li>
-              </ul>
-              <div className="mt-5 flex gap-4 border-t border-white/10 pt-5">
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">1º lugar</p>
-                  <p className="font-display text-lg font-semibold text-signal">{config?.premio1SerieB || DIVISAO_PREMIACAO_SERIE_B[0].valor}</p>
-                </div>
-                <div>
-                  <p className="font-mono text-[10px] uppercase tracking-wider text-muted">2º lugar</p>
-                  <p className="font-display text-lg font-semibold text-signal">{config?.premio2SerieB || DIVISAO_PREMIACAO_SERIE_B[1].valor}</p>
-                </div>
-              </div>
-              <p className="mt-5 border-t border-white/10 pt-5 text-sm text-muted">
-                A Série B só existe a partir do 2º Split, formada pelos 2 rebaixados da Série A do
-                Split anterior somados às 6 vagas abertas por inscrição.
+              <p className="mb-4 text-sm text-muted">
+                Os classificados do VCL Qualifier (diretos + repescagem) disputam o VCL em chave de
+                eliminação simples (mata-mata):
               </p>
-              <Link href="/serie-b" className="btn-secondary mt-6 inline-flex text-xs">Ver Série B</Link>
+              <div className="space-y-2">
+                {ESTRUTURA_VCL.map((fase) => (
+                  <div key={fase.titulo} className="flex items-center justify-between rounded-lg bg-white/5 px-4 py-2.5">
+                    <span className="font-medium">{fase.titulo}</span>
+                    <span className="pill text-signal">{fase.formato}</span>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-5 border-t border-white/10 pt-5 text-xs text-muted">
+                Vagas, premiação e regras específicas de cada edição do VCL ficam disponíveis na
+                aba "Regulamento" da página do torneio.
+              </p>
             </section>
           </div>
 
-          {/* CICLO VISUAL */}
+          {/* FLUXO VISUAL */}
           <section className="mt-10">
-            <p className="eyebrow mb-4">Ciclo de acesso e rebaixamento</p>
+            <p className="eyebrow mb-4">Do Qualifier ao campeão</p>
             <div className="flex flex-wrap items-center gap-3">
-              <span className="pill text-ink">Série A (1º ao 8º permanece)</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
-              <span className="pill text-alert">9º e 10º rebaixados</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
-              <span className="pill text-ink">Série B (formada)</span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted"><path d="M5 12h14m-6-6 6 6-6 6" /></svg>
-              <span className="pill text-signal">Top 2 sobem para a Série A</span>
+              <span className="pill text-ink">VCL Qualifier (grupos)</span>
+              <Seta />
+              <span className="pill text-ink">Vaga direta + Repescagem</span>
+              <Seta />
+              <span className="pill text-ink">VCL (mata-mata)</span>
+              <Seta />
+              <span className="pill text-signal">Campeão</span>
             </div>
           </section>
         </div>
       </main>
       <SiteFooter />
     </>
+  );
+}
+
+function Seta() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-muted">
+      <path d="M5 12h14m-6-6 6 6-6 6" />
+    </svg>
   );
 }

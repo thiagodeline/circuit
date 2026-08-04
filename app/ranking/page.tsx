@@ -28,7 +28,7 @@ export default async function RankingPage() {
         <h1 className="font-display text-4xl font-semibold uppercase">Ranking</h1>
         <p className="mt-3 max-w-xl text-muted">
           Classificação geral por pontos acumulados na temporada, considerando os resultados da
-          Série A e da Série B.
+          VCL Qualifier e do VCL.
         </p>
 
         <div className="mt-10 space-y-3">

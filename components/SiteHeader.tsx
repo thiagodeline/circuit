@@ -50,25 +50,25 @@ export async function SiteHeader() {
             <div className="invisible absolute left-1/2 top-full z-50 w-64 -translate-x-1/2 pt-3 opacity-0 transition-opacity duration-150 group-hover:visible group-hover:opacity-100">
               <div className="rounded-2xl border border-white/10 bg-base/95 p-1.5 backdrop-blur-xl">
                 <Link
-                  href="/serie-a"
+                  href="/torneios?categoria=VCL%20Qualifier"
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/5"
                 >
                   <span className="flex h-4 w-4 flex-shrink-0 items-center justify-center rounded-full border-2 border-signal">
                     <span className="h-1.5 w-1.5 rounded-full bg-signal" />
                   </span>
                   <span>
-                    <p className="font-display text-sm font-semibold uppercase tracking-wide">Série A</p>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Em andamento</p>
+                    <p className="font-display text-sm font-semibold uppercase tracking-wide">VCL Qualifier</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted">Fase de grupos</p>
                   </span>
                 </Link>
                 <Link
-                  href="/serie-b"
+                  href="/torneios?categoria=VCL"
                   className="flex items-center gap-3 rounded-xl px-3 py-2.5 transition-colors hover:bg-white/5"
                 >
                   <span className="h-4 w-4 flex-shrink-0 rounded-full border-2 border-white/20" />
                   <span>
-                    <p className="font-display text-sm font-semibold uppercase tracking-wide text-muted">Série B</p>
-                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted/70">Em breve</p>
+                    <p className="font-display text-sm font-semibold uppercase tracking-wide text-muted">VCL</p>
+                    <p className="font-mono text-[10px] uppercase tracking-wider text-muted/70">Playoffs — mata-mata</p>
                   </span>
                 </Link>
 

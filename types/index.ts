@@ -19,6 +19,7 @@ export interface Torneio {
   regulamentoUrl?: string; // link para o PDF do regulamento
   streamUrl?: string; // canal da transmissão (Twitch, YouTube, etc)
   valorInscricao?: number; // em reais; vazio/0 = inscrição gratuita
+  vagas?: number; // quantidade de times/vagas do torneio (ex: 24 no Qualifier, 16 no VCL)
   capa?: string; // URL da imagem de capa
   criadoEm: number;
 }
@@ -90,9 +91,9 @@ export interface Inscricao {
 }
 
 // Cadeia oficial de torneios do circuito competitivo da Circuit
-export type FaseCircuito = 'Série A' | 'Série B';
+export type FaseCircuito = 'VCL Qualifier' | 'VCL';
 
-export const FASES_CIRCUITO: FaseCircuito[] = ['Série A', 'Série B'];
+export const FASES_CIRCUITO: FaseCircuito[] = ['VCL Qualifier', 'VCL'];
 
 // Um lançamento de pontos de um time em um torneio específico da cadeia.
 // O ranking é sempre a SOMA desses lançamentos por time — nunca uma posição fixa.

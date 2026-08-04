@@ -4,10 +4,10 @@ import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { StatusBadge } from '@/components/StatusBadge';
 import { MatchRow } from '@/components/MatchRow';
-import { TabelaLiga } from '@/components/TabelaLiga';
-import { calcularTabelaLiga } from '@/lib/standings';
+import { Bracket } from '@/components/Bracket';
 import { TorneioTabsClient } from '@/components/TorneioTabsClient';
 import { buscarTorneioPorSlug, listarTimesPorTorneio, listarPartidasPorTorneio } from '@/lib/data';
+import { calcularGrupo } from '@/lib/classificacao';
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 
 export const revalidate = 30;
@@ -15,9 +15,13 @@ export const revalidate = 30;
 const TABS = [
   { key: 'visao-geral', label: 'Visão Geral' },
   { key: 'equipes', label: 'Times Inscritos' },
-  { key: 'classificacao', label: 'Classificação' },
+  { key: 'classificacao', label: 'Classificação / Chave' },
   { key: 'regulamento', label: 'Regulamento' },
 ];
+
+function ehFaseDeGrupo(fase: string) {
+  return /grupo/i.test(fase);
+}
 
 export default async function TorneioDetalhePage({
   params,
@@ -35,8 +39,11 @@ export default async function TorneioDetalhePage({
   ]);
 
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
-  const ehSerieB = torneio.faseCircuito === 'Série B';
-  const tabela = calcularTabelaLiga(times, partidas, ehSerieB ? 'serie-b' : 'serie-a');
+  const ehQualifier = torneio.faseCircuito === 'VCL Qualifier';
+
+  const gruposDeTimes = Array.from(new Set(times.map((t) => t.grupo).filter(Boolean))) as string[];
+  const fasesMataMata = Array.from(new Set(partidas.map((p) => p.fase))).filter((f) => !ehFaseDeGrupo(f));
+
   const tabInicial = TABS.some((t) => t.key === searchParams.tab) ? searchParams.tab! : 'visao-geral';
   const partidasFinalizadas = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 6);
 
@@ -99,6 +106,7 @@ export default async function TorneioDetalhePage({
               <div className="min-w-0">
                 <p className="truncate font-display font-semibold group-hover:text-signal">{t.nome}</p>
                 <p className="font-mono text-xs text-signal">{t.tag}</p>
+                {t.grupo && <p className="mt-0.5 text-xs text-muted">{t.grupo}</p>}
               </div>
             </Link>
           ))}
@@ -107,16 +115,70 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
-  const painelClassificacao = (
-    <div className="space-y-8">
-      {tabela.length === 0 ? (
-        <p className="text-muted">Nenhum time inscrito ainda.</p>
+  // --- VCL QUALIFIER: grupos com zona de vaga direta / repescagem ---
+  const painelGrupos = (
+    <div className="space-y-10">
+      {gruposDeTimes.length === 0 ? (
+        <p className="text-muted">Os grupos ainda não foram definidos.</p>
       ) : (
-        <TabelaLiga linhas={tabela} tipo={ehSerieB ? 'serie-b' : 'serie-a'} />
+        <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-3">
+          {gruposDeTimes.map((grupo) => {
+            const timesDoGrupo = times.filter((t) => t.grupo === grupo);
+            const partidasDoGrupo = partidas.filter(
+              (p) => timesDoGrupo.some((t) => t.id === p.timeA) && timesDoGrupo.some((t) => t.id === p.timeB)
+            );
+            const classificacao = calcularGrupo(timesDoGrupo, partidasDoGrupo);
+
+            return (
+              <div key={grupo} className="card overflow-hidden">
+                <div className="border-b border-white/10 bg-white/[0.03] px-4 py-3">
+                  <p className="font-mono text-xs font-semibold uppercase tracking-wider">{grupo}</p>
+                </div>
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="text-left text-xs text-muted">
+                      <th className="px-3 py-2 font-normal">Time</th>
+                      <th className="px-1 py-2 text-center font-normal">V</th>
+                      <th className="px-1 py-2 text-center font-normal">D</th>
+                      <th className="px-1 py-2 text-center font-normal">Saldo</th>
+                      <th className="px-2 py-2 text-center font-normal">Pts</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {classificacao.map((l) => (
+                      <tr key={l.time.id} className={l.zona === 'direto' ? 'bg-signal/10' : 'bg-white/[0.02]'}>
+                        <td className="px-3 py-2">
+                          <Link href={`/times/${l.time.id}`} className="flex items-center gap-2 hover:text-signal">
+                            {l.time.logo ? (
+                              <img src={l.time.logo} alt="" loading="lazy" decoding="async" className="h-5 w-5 flex-shrink-0 rounded object-cover" />
+                            ) : (
+                              <div className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded bg-white/5 font-mono text-[9px] text-muted">
+                                {l.time.tag.slice(0, 2)}
+                              </div>
+                            )}
+                            <span className="truncate">{l.time.tag}</span>
+                          </Link>
+                        </td>
+                        <td className="px-1 py-2 text-center font-mono text-live">{l.vitorias}</td>
+                        <td className="px-1 py-2 text-center font-mono text-alert">{l.derrotas}</td>
+                        <td className="px-1 py-2 text-center font-mono text-muted">{l.saldo > 0 ? `+${l.saldo}` : l.saldo}</td>
+                        <td className="px-2 py-2 text-center font-mono font-semibold text-signal">{l.pontos}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="flex flex-wrap gap-3 border-t border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-wider text-muted">
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-signal" />Vaga direta no VCL</span>
+                  <span className="flex items-center gap-1.5"><span className="h-2 w-2 rounded-full bg-white/20" />Repescagem</span>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       )}
 
       <div>
-        <p className="eyebrow mb-4">Partidas (MD2)</p>
+        <p className="eyebrow mb-4">Partidas (MD1)</p>
         {partidas.length === 0 ? (
           <p className="text-sm text-muted">Nenhuma partida cadastrada ainda.</p>
         ) : (
@@ -130,8 +192,25 @@ export default async function TorneioDetalhePage({
     </div>
   );
 
+  // --- VCL: chave de mata-mata (Oitavas/Quartas/Semis/Final) ---
+  const painelChave = (
+    <div>
+      {fasesMataMata.length === 0 ? (
+        <p className="text-muted">A chave do mata-mata ainda não foi definida.</p>
+      ) : (
+        <Bracket fases={fasesMataMata} partidas={partidas} timesPorId={timesPorId} />
+      )}
+    </div>
+  );
+
   const painelRegulamento = (
     <div className="max-w-2xl space-y-8">
+      {torneio.vagas && (
+        <div>
+          <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Vagas</h2>
+          <p className="text-muted">{torneio.vagas} times</p>
+        </div>
+      )}
       {torneio.premiacao && (
         <div>
           <h2 className="mb-3 font-display text-xl font-semibold uppercase tracking-wide">Premiação</h2>
@@ -157,16 +236,13 @@ export default async function TorneioDetalhePage({
           Baixar regulamento (PDF)
         </a>
       )}
-      {!torneio.premiacao && !torneio.regras && !torneio.regulamentoUrl && (
-        <p className="text-muted">Regulamento ainda não publicado.</p>
-      )}
     </div>
   );
 
   const panels: Record<string, React.ReactNode> = {
     'visao-geral': painelVisaoGeral,
     equipes: painelEquipes,
-    classificacao: painelClassificacao,
+    classificacao: ehQualifier ? painelGrupos : painelChave,
     regulamento: painelRegulamento,
   };
 
@@ -187,7 +263,7 @@ export default async function TorneioDetalhePage({
 
             <div className="relative mx-auto max-w-[1400px] px-6 pt-8">
               <nav className="flex items-center gap-2 pb-6 font-mono text-xs uppercase tracking-wider text-muted">
-                <Link href="/serie-a" className="transition-colors hover:text-ink">Série A</Link>
+                <Link href="/torneios" className="transition-colors hover:text-ink">Torneios</Link>
                 <span>/</span>
                 <span className="text-ink">{torneio.nome}</span>
               </nav>
@@ -199,6 +275,7 @@ export default async function TorneioDetalhePage({
                     {torneio.faseCircuito && (
                       <span className="pill text-signal">{torneio.faseCircuito} {torneio.edicao}</span>
                     )}
+                    {torneio.vagas && <span className="pill text-muted">{torneio.vagas} times</span>}
                     {torneio.dataInicio && (
                       <span className="pill text-muted">
                         {new Date(torneio.dataInicio).toLocaleDateString('pt-BR', {

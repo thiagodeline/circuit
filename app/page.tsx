@@ -2,9 +2,10 @@ import Link from 'next/link';
 import { SiteHeader } from '@/components/SiteHeader';
 import { SiteFooter } from '@/components/SiteFooter';
 import { MatchRow } from '@/components/MatchRow';
-import { TabelaLiga } from '@/components/TabelaLiga';
-import { buscarTorneioPorFase, listarTimesPorTorneio, listarPartidasPorTorneio, listarNoticias } from '@/lib/data';
-import { calcularTabelaLiga } from '@/lib/standings';
+import { StatusBadge } from '@/components/StatusBadge';
+import { listarTorneios, listarTimesPorTorneio, listarPartidasPorTorneio, listarNoticias } from '@/lib/data';
+import { ordenarPartidasPorData } from '@/lib/ordenar';
+import { Torneio } from '@/types';
 
 export const revalidate = 60;
 
@@ -12,29 +13,28 @@ function extrairEmbedYoutube(url?: string): string | null {
   if (!url) return null;
   const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|live\/|embed\/))([\w-]{11})/);
   if (match) return `https://www.youtube.com/embed/${match[1]}`;
-  // canal/live sem ID de vídeo específico — tenta embed genérico de live do canal
   const canalMatch = url.match(/youtube\.com\/@([\w-]+)/);
   if (canalMatch) return `https://www.youtube.com/embed/live_stream?channel=${canalMatch[1]}`;
   return null;
 }
 
 export default async function HomePage() {
-  const serieA = await buscarTorneioPorFase('Série A').catch(() => null);
+  const torneios = await listarTorneios().catch(() => []);
+  const emFoco: Torneio | undefined =
+    torneios.find((t) => t.etapaAtiva) ||
+    torneios.find((t) => t.status === 'em_andamento') ||
+    torneios.find((t) => t.status === 'inscricoes_abertas');
 
   const [times, partidas, noticias] = await Promise.all([
-    serieA ? listarTimesPorTorneio(serieA.id).catch(() => []) : Promise.resolve([]),
-    serieA ? listarPartidasPorTorneio(serieA.id).catch(() => []) : Promise.resolve([]),
+    emFoco ? listarTimesPorTorneio(emFoco.id).catch(() => []) : Promise.resolve([]),
+    emFoco ? listarPartidasPorTorneio(emFoco.id).catch(() => []) : Promise.resolve([]),
     listarNoticias().catch(() => []),
   ]);
 
-  const tabela = calcularTabelaLiga(times, partidas, 'serie-a');
-  const proximasRodadas = partidas
-    .filter((p) => !p.finalizada && p.data)
-    .sort((a, b) => new Date(a.data!).getTime() - new Date(b.data!).getTime())
-    .slice(0, 4);
-
   const timesPorId = Object.fromEntries(times.map((t) => [t.id, t]));
-  const embedStream = extrairEmbedYoutube(serieA?.streamUrl);
+  const proximasPartidas = ordenarPartidasPorData(partidas.filter((p) => !p.finalizada)).slice(0, 4);
+  const resultadosRecentes = ordenarPartidasPorData(partidas.filter((p) => p.finalizada)).slice(0, 4);
+  const embedStream = extrairEmbedYoutube(emFoco?.streamUrl);
 
   return (
     <>
@@ -43,20 +43,33 @@ export default async function HomePage() {
         {/* HERO — ETAPA ATIVA */}
         <section className="border-b border-white/10 bg-circuit-trace bg-[length:120px_120px]">
           <div className="mx-auto max-w-6xl px-6 py-12">
-            <p className="eyebrow mb-2">Circuit — Liga Independente de Valorant</p>
-            <h1 className="font-display text-4xl font-semibold uppercase tracking-tight sm:text-5xl">
-              {serieA ? serieA.nome : 'Nenhum Split ativo'}
-            </h1>
-            {serieA && (
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                <span className="pill text-signal">SÉRIE A — ELITE</span>
-                {serieA.premiacao && <span className="pill text-signal">{serieA.premiacao}</span>}
-                {serieA.status === 'inscricoes_abertas' && (
-                  <Link href={`/torneios/${serieA.slug}/inscricao`} className="btn-primary py-2 text-xs">
-                    Inscrever meu time
+            <p className="eyebrow mb-2">Circuit — VCL (Valorant Circuit League)</p>
+            {emFoco ? (
+              <>
+                <div className="mb-3 flex flex-wrap items-center gap-3">
+                  <StatusBadge status={emFoco.status} />
+                  {emFoco.faseCircuito && <span className="pill text-signal">{emFoco.faseCircuito} {emFoco.edicao}</span>}
+                  {emFoco.vagas && <span className="pill text-muted">{emFoco.vagas} times</span>}
+                </div>
+                <h1 className="font-display text-4xl font-semibold uppercase tracking-tight sm:text-5xl">
+                  {emFoco.nome}
+                </h1>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  {emFoco.premiacao && <span className="pill text-signal">{emFoco.premiacao}</span>}
+                  {emFoco.status === 'inscricoes_abertas' && (
+                    <Link href={`/torneios/${emFoco.slug}/inscricao`} className="btn-primary py-2 text-xs">
+                      Inscrever meu time
+                    </Link>
+                  )}
+                  <Link href={`/torneios/${emFoco.slug}`} className="btn-secondary py-2 text-xs">
+                    Ver torneio
                   </Link>
-                )}
-              </div>
+                </div>
+              </>
+            ) : (
+              <h1 className="font-display text-4xl font-semibold uppercase tracking-tight sm:text-5xl">
+                Nenhuma etapa ativa no momento
+              </h1>
             )}
           </div>
         </section>
@@ -64,29 +77,28 @@ export default async function HomePage() {
         <div className="mx-auto max-w-6xl px-6 py-14">
           <div className="grid gap-10 lg:grid-cols-[1fr_360px]">
             <div className="space-y-12">
-              {/* TABELA DA SÉRIE A */}
+              {/* PRÓXIMOS JOGOS */}
               <section>
-                <div className="mb-4 flex items-center justify-between">
-                  <p className="eyebrow">Tabela — Série A</p>
-                  <Link href="/serie-a" className="font-mono text-[11px] uppercase tracking-wider text-signal hover:underline">
-                    Ver completa
-                  </Link>
-                </div>
-                {tabela.length === 0 ? (
-                  <div className="card p-8 text-center text-muted">A Série A ainda não foi configurada.</div>
-                ) : (
-                  <TabelaLiga linhas={tabela} tipo="serie-a" />
-                )}
-              </section>
-
-              {/* PRÓXIMAS RODADAS */}
-              <section>
-                <p className="eyebrow mb-4">Próximas rodadas</p>
-                {proximasRodadas.length === 0 ? (
+                <p className="eyebrow mb-4">Próximos jogos</p>
+                {proximasPartidas.length === 0 ? (
                   <p className="text-sm text-muted">Nenhuma partida agendada no momento.</p>
                 ) : (
                   <div className="grid gap-2 sm:grid-cols-2">
-                    {proximasRodadas.map((p) => (
+                    {proximasPartidas.map((p) => (
+                      <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
+                    ))}
+                  </div>
+                )}
+              </section>
+
+              {/* ÚLTIMOS RESULTADOS */}
+              <section>
+                <p className="eyebrow mb-4">Últimos resultados</p>
+                {resultadosRecentes.length === 0 ? (
+                  <p className="text-sm text-muted">Nenhum resultado registrado ainda.</p>
+                ) : (
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    {resultadosRecentes.map((p) => (
                       <MatchRow key={p.id} partida={p} timesPorId={timesPorId} />
                     ))}
                   </div>
@@ -131,12 +143,10 @@ export default async function HomePage() {
               </div>
 
               <div className="mt-8 card p-5">
-                <p className="font-mono text-xs font-semibold uppercase tracking-wider text-signal">Série B</p>
-                <p className="mt-2 text-sm text-muted">
-                  Ao fim do Split, os rebaixados da Série A fundam a Série B, com 6 vagas abertas.
-                </p>
-                <Link href="/serie-b" className="btn-secondary mt-4 inline-flex text-xs">
-                  Saiba mais
+                <p className="font-mono text-xs font-semibold uppercase tracking-wider text-signal">Todos os torneios</p>
+                <p className="mt-2 text-sm text-muted">Veja todas as edições do VCL Qualifier e do VCL.</p>
+                <Link href="/torneios" className="btn-secondary mt-4 inline-flex text-xs">
+                  Ver torneios
                 </Link>
               </div>
             </aside>
