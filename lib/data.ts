@@ -154,31 +154,11 @@ export async function excluirPontosCircuito(id: string) {
   return deleteDoc(doc(db, 'pontos_circuito', id));
 }
 
-// --- Torneio ativo por fase da liga (Série A / Série B) ---
+// --- Torneio ativo por fase (VCL Qualifier / VCL) ---
 
-export async function buscarTorneioPorFase(fase: 'Série A' | 'Série B'): Promise<Torneio | null> {
+export async function buscarTorneioPorFase(fase: 'VCL Qualifier' | 'VCL'): Promise<Torneio | null> {
   const todos = await listarTorneios();
   return todos.find((t) => t.faseCircuito === fase) || null;
-}
-
-// --- Pré-inscrição / lista de espera para as vagas abertas da Série B ---
-
-export interface PreInscricaoSerieB {
-  id: string;
-  nomeTime: string;
-  tag: string;
-  capitao: string;
-  contato: string;
-  criadoEm: number;
-}
-
-export async function criarPreInscricaoSerieB(dados: Omit<PreInscricaoSerieB, 'id' | 'criadoEm'>) {
-  return addDoc(collection(db, 'pre_inscricoes_serie_b'), { ...dados, criadoEm: Date.now() });
-}
-
-export async function listarPreInscricoesSerieB(): Promise<PreInscricaoSerieB[]> {
-  const snap = await getDocs(query(collection(db, 'pre_inscricoes_serie_b'), orderBy('criadoEm', 'asc')));
-  return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as PreInscricaoSerieB);
 }
 
 // --- Configuração da temporada (valores editáveis pelo admin) ---
