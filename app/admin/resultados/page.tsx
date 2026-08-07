@@ -14,9 +14,19 @@ import {
 import { ordenarPartidasPorData } from '@/lib/ordenar';
 import { Torneio, Time, Partida, MapaJogado } from '@/types';
 
-const FASES_CHAVE = ['Rodada 1', 'Rodada 2', 'Rodada 3', 'Rodada 4', 'Rodada 5', 'Rodada 6', 'Rodada 7', 'Rodada 8', 'Rodada 9'];
+// Opções de fase conforme o formato do torneio selecionado:
+// VCL Qualifier = fase de grupos (rodadas) + repescagem; VCL = chave de mata-mata.
+const FASES_QUALIFIER = ['Rodada 1', 'Rodada 2', 'Rodada 3', 'Repescagem'];
+const FASES_VCL = ['Oitavas de Final', 'Quartas de Final', 'Semifinais', 'Grande Final'];
+const FASES_PADRAO = ['Rodada 1', 'Rodada 2', 'Rodada 3', 'Rodada 4', 'Rodada 5'];
 
-const vazio = { fase: FASES_CHAVE[0], timeA: '', timeB: '', data: '' };
+function fasesDisponiveis(torneio?: Torneio): string[] {
+  if (torneio?.faseCircuito === 'VCL Qualifier') return FASES_QUALIFIER;
+  if (torneio?.faseCircuito === 'VCL') return FASES_VCL;
+  return FASES_PADRAO;
+}
+
+const vazio = { fase: '', timeA: '', timeB: '', data: '' };
 
 // Converte texto tipo "Haven 13-2, Split 5-13" em MapaJogado[]
 function parsearMapas(texto: string): MapaJogado[] {
@@ -66,6 +76,18 @@ export default function AdminResultadosPage() {
 
   useEffect(() => {
     carregar(torneioId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [torneioId]);
+
+  const torneioSelecionado = torneios.find((t) => t.id === torneioId);
+  const opcoesFase = fasesDisponiveis(torneioSelecionado);
+
+  // Sempre que troca de torneio, garante que a fase escolhida no formulário
+  // seja uma opção válida para o novo formato (grupos vs. chave).
+  useEffect(() => {
+    if (!opcoesFase.includes(form.fase)) {
+      setForm((f) => ({ ...f, fase: opcoesFase[0] || '' }));
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [torneioId]);
 
@@ -209,12 +231,20 @@ export default function AdminResultadosPage() {
             <form onSubmit={criar} className="card h-fit space-y-4 p-6">
               <h2 className="font-display font-semibold">Nova partida</h2>
               <div>
-                <label className="label">Rodada</label>
+                <label className="label">
+                  {torneioSelecionado?.faseCircuito === 'VCL' ? 'Fase da Chave' : 'Rodada'}
+                </label>
                 <select required className="input" value={form.fase} onChange={(e) => setForm({ ...form, fase: e.target.value })}>
-                  {FASES_CHAVE.map((f) => (
+                  {opcoesFase.map((f) => (
                     <option key={f} value={f}>{f}</option>
                   ))}
                 </select>
+                {torneioSelecionado?.faseCircuito === 'VCL Qualifier' && (
+                  <p className="mt-1 text-xs text-muted">
+                    "Rodada" é usada na fase de grupos (lembre-se de escolher o Grupo do time em
+                    "Times"). "Repescagem" é pro confronto entre os 3º/4º colocados dos grupos.
+                  </p>
+                )}
               </div>
               <div>
                 <label className="label">Time A</label>
